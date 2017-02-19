@@ -1,7 +1,11 @@
-﻿namespace Server.Lib.Models.Resources
+﻿using System;
+
+namespace Server.Lib.Models.Resources
 {
-    class Resource : IResource
+    public class Resource
     {
         public string Id { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
     }
 }
