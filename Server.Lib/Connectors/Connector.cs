@@ -5,7 +5,7 @@ namespace Server.Lib.Connectors
 {
     public abstract class Connector : IConnector
     {
-        public Task InitializeAsync(CancellationToken cancellationToken)
+        public virtual Task InitializeAsync(CancellationToken cancellationToken)
         {
             return Task.FromResult(!cancellationToken.IsCancellationRequested);
         }

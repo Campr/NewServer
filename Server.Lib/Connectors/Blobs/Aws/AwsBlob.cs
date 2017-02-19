@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.S3.Model;
-using Server.Lib.Extensions;
+using Server.Lib.Infrastructure;
 
 namespace Server.Lib.Connectors.Blobs.Aws
 {

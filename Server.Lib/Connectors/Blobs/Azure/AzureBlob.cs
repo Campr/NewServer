@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Server.Lib.Extensions;
+using Server.Lib.Infrastructure;
 
 namespace Server.Lib.Connectors.Blobs.Azure
 {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Server.Lib.Extensions;
 using Server.Lib.Helpers;
+using Server.Lib.Infrastructure;
 
 namespace Server.Lib.Connectors.Queues.Azure
 {

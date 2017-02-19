@@ -1,5 +1,6 @@
 ﻿using Amazon.S3;
 using Server.Lib.Extensions;
+using Server.Lib.Infrastructure;
 
 namespace Server.Lib.Connectors.Blobs.Aws
 {
