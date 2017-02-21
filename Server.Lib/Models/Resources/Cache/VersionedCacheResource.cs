@@ -1,13 +1,13 @@
 ﻿using System;
 
-namespace Server.Lib.Models.Resources
+namespace Server.Lib.Models.Resources.Cache
 {
-    public abstract class VersionedResource : Resource
+    public class VersionedCacheResource : CacheResource
     {
         public string VersionId { get; set; }
         public DateTime VersionCreatedAt { get; set; }
 
-        public int CompareTo(VersionedResource otherResource)
+        public int CompareTo(VersionedCacheResource otherResource)
         {
             // Make sure we were given something to compare.
             if (otherResource == null)

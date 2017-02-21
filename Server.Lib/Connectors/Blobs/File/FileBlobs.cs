@@ -1,20 +1,19 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Server.Lib.Configuration;
 using Server.Lib.Infrastructure;
 
 namespace Server.Lib.Connectors.Blobs.File
 {
     public class FileBlobs : Connector, IBlobs
     {
-        public FileBlobs(ILocalConfiguration localConfiguration)
+        public FileBlobs(IConfiguration configuration)
         {
-            Ensure.Argument.IsNotNull(localConfiguration, nameof(localConfiguration));
+            Ensure.Argument.IsNotNull(configuration, nameof(configuration));
 
             // Create the paths of the local containers.
-            this.postVersionsPath = Path.Combine(localConfiguration.BlobFilePath, "postversions");
-            this.attachmentsPath = Path.Combine(localConfiguration.BlobFilePath, "attachments");
+            this.postVersionsPath = Path.Combine(configuration.FileBlobsPath, "postversions");
+            this.attachmentsPath = Path.Combine(configuration.FileBlobsPath, "attachments");
 
             // Create the IBlobContainer objects.
             this.PostVersions = new FileBlobContainer(this.postVersionsPath);

@@ -18,6 +18,11 @@ namespace Server.Lib.Extensions
                     yield return YieldBatchElements(enumerator, batchSize - 1);
         }
 
+        public static IDisposable ToDisposable<T>(this IEnumerable<T> source) where T : IDisposable
+        {
+            return new DisposableWrapper<T>(source.ToList());
+        }
+
         private static IEnumerable<T> YieldBatchElements<T>(IEnumerator<T> source, int batchSize)
         {
             yield return source.Current;
@@ -43,6 +48,24 @@ namespace Server.Lib.Extensions
         public int GetHashCode(T obj)
         {
             return this.propertySelector(obj).GetHashCode();
+        }
+    }
+
+    class DisposableWrapper<T> : IDisposable where T : IDisposable
+    {
+        public DisposableWrapper(IList<T> disposableObjects)
+        {
+            this.disposableObjects = disposableObjects;
+        }
+
+        private readonly IList<T> disposableObjects;
+
+        public void Dispose()
+        {
+            foreach (var disposableObject in this.disposableObjects)
+            {
+                disposableObject.Dispose();
+            }
         }
     }
 }

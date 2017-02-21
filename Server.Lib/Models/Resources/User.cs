@@ -1,4 +1,6 @@
 ﻿using System;
+using Server.Lib.Models.Resources.Api;
+using Server.Lib.Models.Resources.Cache;
 
 namespace Server.Lib.Models.Resources
 {
@@ -11,5 +13,17 @@ namespace Server.Lib.Models.Resources
         public byte[] PasswordSalt { get; set; }
         public bool? IsBotFollowed { get; set; }
         public DateTime? LastDiscoveryAttempt { get; set; }
+
+        public override string[] CacheIds => new [] { this.Id, this.Email, this.Entity };
+
+        public override ApiResource ToApi()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override CacheResource ToCache()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

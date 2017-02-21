@@ -3,6 +3,6 @@
     public interface IJsonHelpers
     {
         string ToJsonString(object obj);
-        T FromJsonString<T>(string src);
+        TObject FromJsonString<TObject>(string src);
     }
 }

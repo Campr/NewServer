@@ -1,24 +1,23 @@
 ﻿using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
-using Server.Lib.Configuration;
 using Server.Lib.Infrastructure;
 
 namespace Server.Lib.Connectors.Blobs.Aws
 {
     public class AwsBlobs : Connector, IBlobs
     {
-        public AwsBlobs(IAwsConfiguration awsConfiguration)
+        public AwsBlobs(IConfiguration configuration)
         {
-            Ensure.Argument.IsNotNull(awsConfiguration, nameof(awsConfiguration));
+            Ensure.Argument.IsNotNull(configuration, nameof(configuration));
 
             // Create the credentials for our AWS account.
             var awsCredentials = new BasicAWSCredentials(
-                awsConfiguration.AwsAccessKey,
-                awsConfiguration.AwsAccessSecret);
+                configuration.AwsAccessKey,
+                configuration.AwsAccessSecret);
 
             // Create the underlying S3 client.
-            var region = RegionEndpoint.GetBySystemName(awsConfiguration.BlobsRegion);
+            var region = RegionEndpoint.GetBySystemName(configuration.AwsBlobsRegion);
             var client = new AmazonS3Client(awsCredentials, region);
 
             // Create our blob containers.

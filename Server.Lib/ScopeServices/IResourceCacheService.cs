@@ -7,6 +7,7 @@ namespace Server.Lib.ScopeServices
 {
     public interface IResourceCacheService
     {
-        Task<TResource> FetchAsync<TResource>(string id, Func<Task<TResource>> fetcher, CancellationToken cancellationToken = default(CancellationToken)) where TResource : Resource;
+        Task<TResource> FetchAsync<TResource>(string cacheId, Func<CancellationToken, Task<TResource>> fetcher, CancellationToken cancellationToken = default(CancellationToken)) where TResource : Resource;
+        Task SaveAsync<TResource>(TResource resource, Func<CancellationToken, Task> saver, CancellationToken cancellationToken = default(CancellationToken)) where TResource : Resource;
     }
 }
