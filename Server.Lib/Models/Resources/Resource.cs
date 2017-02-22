@@ -8,10 +8,15 @@ namespace Server.Lib.Models.Resources
     {
         public abstract string[] CacheIds { get; }
         public abstract ApiResource ToApi();
-        public abstract CacheResource ToCache();
+        public abstract CacheResource ToDb();
+
+        public virtual CacheResource ToCache()
+        {
+            return this.ToDb();
+        }
 
         public string Id { get; set; }
         public DateTime CreatedAt { get; set; }
-        public DateTime DeletedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
     }
 }

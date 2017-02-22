@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Server.Lib.Models.Resources;
 
-namespace Server.Lib.Services
+namespace Server.Lib.ScopeServices
 {
     public interface IResourceLoader
     {

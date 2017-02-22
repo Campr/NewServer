@@ -1,10 +1,9 @@
-﻿using Server.Lib.Models.Resources;
+﻿using Server.Lib.Models.Resources.Cache;
 
 namespace Server.Lib.Connectors.Cache
 {
     public interface ICaches
     {
-        ICacheStore<User> Users { get; }
-        ICacheStore<Bewit> Bewits { get; }
+        ICacheStore<CacheUser> Users { get; }
     }
 }

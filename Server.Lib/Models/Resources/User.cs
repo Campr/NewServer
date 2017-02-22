@@ -6,6 +6,11 @@ namespace Server.Lib.Models.Resources
 {
     public class User : VersionedResource
     {
+        public User(CacheUser cacheUser)
+        {
+            
+        }
+
         public string Handle { get; set; }
         public string Entity { get; set; }
         public string Email { get; set; }
@@ -21,9 +26,23 @@ namespace Server.Lib.Models.Resources
             throw new NotImplementedException();
         }
 
-        public override CacheResource ToCache()
+        public override CacheResource ToDb()
         {
-            throw new NotImplementedException();
+            return new CacheUser
+            {
+                Id = this.Id,
+                CreatedAt = this.CreatedAt,
+                DeletedAt = this.DeletedAt,
+                VersionId = this.VersionId,
+                VersionCreatedAt = this.VersionCreatedAt,
+                Handle = this.Handle,
+                Entity = this.Entity,
+                Email = this.Email,
+                Password = this.Password,
+                PasswordSalt = this.PasswordSalt,
+                IsBotFollowed = this.IsBotFollowed,
+                LastDiscoveryAttempt = this.LastDiscoveryAttempt
+            };
         }
     }
 }

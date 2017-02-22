@@ -16,5 +16,7 @@ namespace Server.Lib
         IDictionary<string, int> RedisEndoints { get; }
         string RedisPassword { get; }
         IDictionary<Type, string> ResourceCacheKeys { get; }
+
+        bool DebugJson { get; }
     }
 }

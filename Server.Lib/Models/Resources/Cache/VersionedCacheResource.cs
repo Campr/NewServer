@@ -2,12 +2,12 @@
 
 namespace Server.Lib.Models.Resources.Cache
 {
-    public class VersionedCacheResource : CacheResource
+    public class CacheVersionedResource : CacheResource
     {
         public string VersionId { get; set; }
         public DateTime VersionCreatedAt { get; set; }
 
-        public int CompareTo(VersionedCacheResource otherResource)
+        public int CompareTo(CacheVersionedResource otherResource)
         {
             // Make sure we were given something to compare.
             if (otherResource == null)

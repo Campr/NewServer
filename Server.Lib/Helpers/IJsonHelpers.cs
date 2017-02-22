@@ -2,7 +2,7 @@
 {
     public interface IJsonHelpers
     {
-        string ToJsonString(object obj);
-        TObject FromJsonString<TObject>(string src);
+        string ToJsonString(object content);
+        TObject FromJsonString<TObject>(string source);
     }
 }

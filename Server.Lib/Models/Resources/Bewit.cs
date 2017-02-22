@@ -8,6 +8,7 @@ namespace Server.Lib.Models.Resources
     {
         public byte[] Key { get; set; }
         public DateTime? ExpiresAt { get; set; }
+
         public override string[] CacheIds => new [] { this.Id };
 
         public override ApiResource ToApi()
@@ -16,6 +17,11 @@ namespace Server.Lib.Models.Resources
         }
 
         public override CacheResource ToCache()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override CacheResource ToDb()
         {
             throw new NotImplementedException();
         }
