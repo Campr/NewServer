@@ -13,9 +13,12 @@ namespace Server.Lib
 
         string FileBlobsPath { get; }
 
-        IDictionary<string, int> RedisEndoints { get; }
+        IEnumerable<KeyValuePair<string, int>> RedisEndoints { get; }
         string RedisPassword { get; }
         IDictionary<Type, string> ResourceCacheKeys { get; }
+
+        IEnumerable<KeyValuePair<string, int>> MongoServers { get; }
+        string MongoDatabaseName { get; }
 
         bool DebugJson { get; }
     }
