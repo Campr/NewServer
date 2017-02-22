@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Server.Lib.Helpers;
 using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources.Cache;
-using Server.Lib.ScopeServices;
 using StackExchange.Redis;
 
 namespace Server.Lib.Connectors.Cache.Redis
@@ -43,6 +42,8 @@ namespace Server.Lib.Connectors.Cache.Redis
         private readonly TaskRunner initializer;
         private readonly ConfigurationOptions redisOptions;
 
+        private IDatabase database;
+
         public override Task InitializeAsync(CancellationToken cancellationToken)
         {
             return this.initializer.RunOnce(cancellationToken);
@@ -52,10 +53,15 @@ namespace Server.Lib.Connectors.Cache.Redis
         {
             // Try to connect to the redis instance.
             var connection = await ConnectionMultiplexer.ConnectAsync(this.redisOptions);
-            var database = connection.GetDatabase();
+            this.database = connection.GetDatabase();
             
             // Create the resource store based on that connection.
-            this.Users = new RedisCacheStore<CacheUser>(this.jsonHelpers, this.configuration, database);
+            this.Users = new RedisCacheStore<CacheUser>(this.jsonHelpers, this.configuration, this.database);
+        }
+
+        public ICacheStore<TCacheResource> MakeForType<TCacheResource>() where TCacheResource : CacheResource
+        {
+            return new RedisCacheStore<TCacheResource>(this.jsonHelpers, this.configuration, this.database);
         }
 
         public ICacheStore<CacheUser> Users { get; private set; }

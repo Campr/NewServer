@@ -10,9 +10,9 @@ namespace Server.Lib.Connectors.Db.Mongo
             var client = new MongoClient("");
             var database = client.GetDatabase("");
 
-            this.Users = new MongoTable<CacheUser>(database.GetCollection<CacheUser>(""));
+            this.Users = new VersionedMongoTable<CacheUser>(database.GetCollection<CacheUser>(""));
         }
 
-        public ITable<CacheUser> Users { get; }
+        public IVersionedTable<CacheUser> Users { get; }
     }
 }

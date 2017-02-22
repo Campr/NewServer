@@ -4,6 +4,6 @@ namespace Server.Lib.Connectors.Db
 {
     public interface ITables
     {
-        ITable<CacheUser> Users { get; }
+        IVersionedTable<CacheUser> Users { get; }
     }
 }

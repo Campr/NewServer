@@ -13,14 +13,14 @@ namespace Server.Lib.Connectors.Db.Mongo
         public MongoTable(IMongoCollection<TCacheResource> collection)
         {
             Ensure.Argument.IsNotNull(collection, nameof(collection));
-            this.collection = collection;
+            this.Collection = collection;
         }
 
-        private readonly IMongoCollection<TCacheResource> collection;
+        protected readonly IMongoCollection<TCacheResource> Collection;
 
         public Task<TCacheResource> FindAsync(Expression<Func<TCacheResource, bool>> filter, CancellationToken cancellationToken)
         {
-            return this.collection.Find(filter).FirstAsync(cancellationToken);
+            return this.Collection.Find(filter).FirstAsync(cancellationToken);
         }
     }
 }

@@ -3,25 +3,45 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Server.Lib.Connectors.Cache;
 using Server.Lib.Extensions;
+using Server.Lib.Helpers;
 using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources;
+using Server.Lib.Models.Resources.Cache;
 
 namespace Server.Lib.ScopeServices
 {
     class ResourceCacheService : IResourceCacheService
     {
-        public ResourceCacheService()
+        public ResourceCacheService(
+            ICaches caches, 
+            ITextHelpers textHelpers)
         {
+            Ensure.Argument.IsNotNull(caches, nameof(caches));
+            Ensure.Argument.IsNotNull(textHelpers, nameof(textHelpers));
+
+            this.caches = caches;
+            this.textHelpers = textHelpers;
+
             // Create our collections.
             this.resources = new Dictionary<string, Resource>();
             this.resourceLocks = new Dictionary<string, AsyncLock>();
         }
 
+        private readonly ICaches caches;
+        private readonly ITextHelpers textHelpers;
+
         private readonly IDictionary<string, Resource> resources;
         private readonly IDictionary<string, AsyncLock> resourceLocks;
 
-        public async Task<TResource> FetchAsync<TResource>(string cacheId, Func<CancellationToken, Task<TResource>> fetcher, CancellationToken cancellationToken) where TResource : Resource
+        public async Task<TResource> WrapFetchAsync<TResource, TCacheResource>(
+            string cacheId, 
+            Func<CancellationToken, Task<TCacheResource>> fetcher, 
+            Func<TCacheResource, CancellationToken, Task<TResource>> loader,
+            CancellationToken cancellationToken) 
+                where TResource : Resource 
+                where TCacheResource : CacheResource
         {
             // Build the cache key for the requested resource.
             var resourceType = typeof(TResource);
@@ -37,18 +57,33 @@ namespace Server.Lib.ScopeServices
                 if (this.resources.TryGetValue(cacheKey, out resource))
                     return (TResource)resource;
 
-                // If none was found, use the fetcher to retrieve it.
-                resource = await fetcher(cancellationToken);
+                // If none was found, try to fetch from the shared cache.
+                var cacheStore = this.caches.MakeForType<TCacheResource>();
+                var cacheResource = await cacheStore.Get(cacheId, cancellationToken);
+
+                // If we still have none, use the fetcher to retrieve it.
+                var cacheMiss = cacheResource == null;
+                cacheResource = cacheResource ?? await fetcher(cancellationToken);
 
                 // If the resource is null, update the cache and return.
-                if (resource == null)
+                if (cacheResource == null)
                 {
                     this.resources[cacheKey] = null;
                     return null;
                 }
 
-                // Otherwise, if we have other keys, check their values.
-                var otherCacheKeys = resource.CacheIds
+                // Otherwise, use the cache resource to load the resource.
+                resource = await loader(cacheResource, cancellationToken);
+                var resourceCacheIds = resource.CacheIds.Select(c => this.textHelpers.BuildCacheKey(c)).ToArray();
+
+                // If needed, update the shared cache.
+                if (cacheMiss)
+                {
+                    await cacheStore.Save(resourceCacheIds, (TCacheResource)resource.ToCache(), cancellationToken);
+                }
+
+                // If we have other keys, check their values.
+                var otherCacheKeys = resourceCacheIds
                     .Where(c => c != cacheId)
                     .Select(c => this.GetCacheKey(resourceType, c))
                     .ToList();
@@ -83,7 +118,7 @@ namespace Server.Lib.ScopeServices
         {
             // Build the cache keys for the specified resource.
             var resourceType = typeof(TResource);
-            var cacheKeys = resource.CacheIds.Select(c => this.GetCacheKey(resourceType, c)).ToList();
+            var cacheKeys = resource.CacheIds.Select(c => this.GetCacheKey(resourceType, this.textHelpers.BuildCacheKey(c))).ToList();
 
             // Lock all the keys.
             var cacheKeyLockTasks = cacheKeys.Select(c => this.GetResourceLock(c).LockAsync(cancellationToken)).ToList();
@@ -140,7 +175,7 @@ namespace Server.Lib.ScopeServices
 
         private string GetCacheKey(Type resourceType, string cacheId)
         {
-            return $"{resourceType.Name}-{cacheId}";
+            return $"{resourceType.Name}/{cacheId}";
         } 
     }
 }

@@ -9,7 +9,10 @@ namespace Server.Lib.Models.Resources
         public byte[] Key { get; set; }
         public DateTime? ExpiresAt { get; set; }
 
-        public override string[] CacheIds => new [] { this.Id };
+        public override string[][] CacheIds => new []
+        {
+            new [] { "id", this.Id }
+        };
 
         public override ApiResource ToApi()
         {

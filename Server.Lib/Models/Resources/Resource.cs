@@ -6,7 +6,7 @@ namespace Server.Lib.Models.Resources
 {
     public abstract class Resource
     {
-        public abstract string[] CacheIds { get; }
+        public abstract string[][] CacheIds { get; }
         public abstract ApiResource ToApi();
         public abstract CacheResource ToDb();
 

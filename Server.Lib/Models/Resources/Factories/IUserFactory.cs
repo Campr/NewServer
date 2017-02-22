@@ -10,8 +10,4 @@ namespace Server.Lib.Models.Resources.Factories
         Task<User> FetchByEntityAsync(string entity, CancellationToken cancellationToken = default(CancellationToken));
         Task<User> FetchByEmailAsync(string email, CancellationToken cancellationToken = default(CancellationToken));
     }
-
-    class UserFactory : IUserFactory
-    {
-    }
 }

@@ -3,5 +3,11 @@
     public interface ITextHelpers
     {
         string GenerateUniqueId();
+
+        string BuildCacheKey(string[] cacheKeyParts);
+    }
+
+    class TextHelpers : ITextHelpers
+    {
     }
 }
