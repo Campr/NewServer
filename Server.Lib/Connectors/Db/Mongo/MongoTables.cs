@@ -11,6 +11,7 @@ namespace Server.Lib.Connectors.Db.Mongo
         {
             Ensure.Argument.IsNotNull(configuration, nameof(configuration));
 
+            // Configure the Mongo connection.
             var clientSettings = new MongoClientSettings
             {
                 Servers = configuration.MongoServers.Select(kv => new MongoServerAddress(kv.Key, kv.Value)),
@@ -20,9 +21,11 @@ namespace Server.Lib.Connectors.Db.Mongo
                 ReadPreference = ReadPreference.Nearest
             };
 
+            // Create the client and get a reference to the Db.
             var client = new MongoClient(clientSettings);
             var database = client.GetDatabase(configuration.MongoDatabaseName);
 
+            // Create references to our tables.
             this.Users = new VersionedMongoTable<CacheUser>(database.GetCollection<CacheUser>("users"));
         }
 

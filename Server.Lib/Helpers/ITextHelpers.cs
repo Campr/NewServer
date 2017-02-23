@@ -6,8 +6,4 @@
 
         string BuildCacheKey(string[] cacheKeyParts);
     }
-
-    class TextHelpers : ITextHelpers
-    {
-    }
 }

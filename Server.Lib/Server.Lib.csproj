@@ -5,14 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Connectors\Cache\" />
+    <Folder Include="Configuration\" />
+    <Folder Include="Connectors\Cache\Memory\" />
     <Folder Include="Connectors\Queues\Memory\" />
-    <Folder Include="Connectors\Resources\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.3.5.5" />
     <PackageReference Include="AWSSDK.SQS" Version="3.3.1.7" />
+    <PackageReference Include="MongoDB.Driver" Version="2.4.2" />
     <PackageReference Include="StackExchange.Redis" Version="1.2.0" />
     <PackageReference Include="WindowsAzure.Storage" Version="8.1.0" />
   </ItemGroup>
