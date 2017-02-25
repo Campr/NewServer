@@ -5,7 +5,7 @@ services:
 
 before_install:
 - docker run -d -p 27017:27017 --name mongo mongo
-- docker run -v $(pwd):/app microsoft/dotnet sh -c "cd /app; dotnet restore"
+- docker run -v $(pwd):/app --name dotnet microsoft/dotnet sh -c "cd /app; dotnet restore"
 - docker commit dotnet build-dotnet
 
 script:
