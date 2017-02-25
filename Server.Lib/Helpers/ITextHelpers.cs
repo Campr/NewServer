@@ -1,9 +1,10 @@
-﻿namespace Server.Lib.Helpers
+﻿using System.Collections.Generic;
+
+namespace Server.Lib.Helpers
 {
     public interface ITextHelpers
     {
         string GenerateUniqueId();
-
-        string BuildCacheKey(string[] cacheKeyParts);
+        string BuildCacheKey(IEnumerable<string> cacheKeyParts);
     }
 }

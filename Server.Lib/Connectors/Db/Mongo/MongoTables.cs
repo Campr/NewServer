@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Events;
 using Server.Lib.Infrastructure;
@@ -40,6 +41,11 @@ namespace Server.Lib.Connectors.Db.Mongo
                     cluster.Subscribe<CommandSucceededEvent>(e => loggingService.Info("[Mongo] {0} Succeeded - {1}", e.CommandName, e.Reply.ToJson()));
                     cluster.Subscribe<CommandFailedEvent>(e => loggingService.Exception(e.Failure, "[Mongo] {0} Failed", e.CommandName));
                 };
+
+            // Configure serialization.
+            var conventionPack = new ConventionPack();
+            conventionPack.Add(new SnakeCaseElementNameConvention());
+            ConventionRegistry.Register("snakeCase", conventionPack, t => true);
 
             // Create the client and get a reference to the Db.
             var client = new MongoClient(clientSettings);
