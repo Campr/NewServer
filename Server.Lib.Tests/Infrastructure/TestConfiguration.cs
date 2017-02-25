@@ -14,13 +14,13 @@ namespace Server.Lib.Tests.Infrastructure
             this.MongoDatabaseName = Guid.NewGuid().ToString("N");
             this.MongoServers = new []
             {
-                new KeyValuePair<string, int>("localhost", 27017)
+                new KeyValuePair<string, int>("mongo", 27017)
             };
             this.MongoCollections = new Dictionary<Type, string>
             {
                 { typeof(CacheUser), "users" }
             };
-            
+
             // Json.
             this.JsonDebug = false;
         }
