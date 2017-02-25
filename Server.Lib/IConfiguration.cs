@@ -9,6 +9,7 @@ namespace Server.Lib
         string AwsAccessSecret { get; }
         string AwsBlobsRegion { get; }
 
+        bool AzureBlobsShouldInitialize { get; }
         string AzureBlobsConnectionString { get; }
 
         string FileBlobsPath { get; }
@@ -17,9 +18,12 @@ namespace Server.Lib
         string RedisPassword { get; }
         IDictionary<Type, string> ResourceCacheKeys { get; }
 
+        bool MongoShouldInitialize { get; }
+        bool MongoDebug { get; }
         IEnumerable<KeyValuePair<string, int>> MongoServers { get; }
+        IDictionary<Type, string> MongoCollections { get; }
         string MongoDatabaseName { get; }
 
-        bool DebugJson { get; }
+        bool JsonDebug { get; }
     }
 }

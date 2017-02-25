@@ -9,5 +9,6 @@ namespace Server.Lib.Connectors.Db
     public interface ITable<TCacheResource> where TCacheResource : CacheResource
     {
         Task<TCacheResource> FindAsync(Expression<Func<TCacheResource, bool>> filter, CancellationToken cancellationToken = default(CancellationToken));
+        Task InsertAsync(TCacheResource cacheResoure, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

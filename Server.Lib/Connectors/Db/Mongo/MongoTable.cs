@@ -20,7 +20,12 @@ namespace Server.Lib.Connectors.Db.Mongo
 
         public Task<TCacheResource> FindAsync(Expression<Func<TCacheResource, bool>> filter, CancellationToken cancellationToken)
         {
-            return this.Collection.Find(filter).FirstAsync(cancellationToken);
+            return this.Collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public Task InsertAsync(TCacheResource cacheResoure, CancellationToken cancellationToken)
+        {
+            return this.Collection.InsertOneAsync(cacheResoure, null, cancellationToken);
         }
     }
 }

@@ -45,7 +45,7 @@ namespace Server.Lib.Helpers
             // If an exception was provided, log it.
             if (ex != null)
             {
-                this.loggingService.Exception(ex, message);
+                this.loggingService.Exception(ex, "[Json] {0}", message);
                 return;
             }
 
@@ -53,15 +53,15 @@ namespace Server.Lib.Helpers
             switch (level)
             {
                 case TraceLevel.Error:
-                    this.loggingService.Error(message);
+                    this.loggingService.Error("[Json] {0}", message);
                     break;
                 default:
-                    this.loggingService.Info(message);
+                    this.loggingService.Info("[Json] {0}", message);
                     break;
             }
         }
 
-        public TraceLevel LevelFilter => this.configuration.DebugJson
+        public TraceLevel LevelFilter => this.configuration.JsonDebug
             ? TraceLevel.Verbose
             : TraceLevel.Off;
     }

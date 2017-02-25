@@ -9,5 +9,10 @@ namespace Server.Lib.Connectors
         {
             return Task.FromResult(!cancellationToken.IsCancellationRequested);
         }
+
+        public virtual Task ResetAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult(!cancellationToken.IsCancellationRequested);
+        }
     }
 }

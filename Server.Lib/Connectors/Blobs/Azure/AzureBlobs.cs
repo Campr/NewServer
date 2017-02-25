@@ -11,6 +11,7 @@ namespace Server.Lib.Connectors.Blobs.Azure
         public AzureBlobs(IConfiguration configuration)
         {
             Ensure.Argument.IsNotNull(configuration, nameof(configuration));
+            this.configuration = configuration;
 
             // Create the storage account from the connection stirng, and the corresponding client.
             var blobsStorageAccount = CloudStorageAccount.Parse(configuration.AzureBlobsConnectionString);
@@ -28,6 +29,7 @@ namespace Server.Lib.Connectors.Blobs.Azure
             this.initializer = new TaskRunner(this.InitializeOnceAsync);
         }
 
+        private readonly IConfiguration configuration;
         private readonly TaskRunner initializer;
         private readonly CloudBlobContainer postVersionsContainer;
         private readonly CloudBlobContainer attachmentsContainer;
@@ -39,6 +41,10 @@ namespace Server.Lib.Connectors.Blobs.Azure
 
         private Task InitializeOnceAsync(CancellationToken cancellationToken)
         {
+            // Check if there's anything for us to do.
+            if (!this.configuration.AzureBlobsShouldInitialize)
+                return Task.FromResult(false);
+
             // Try to create the containers.
             return Task.WhenAll(
                 this.postVersionsContainer.CreateIfNotExistsAsync(
