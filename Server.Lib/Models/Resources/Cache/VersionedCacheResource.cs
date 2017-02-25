@@ -4,6 +4,7 @@ namespace Server.Lib.Models.Resources.Cache
 {
     public class CacheVersionedResource : CacheResource
     {
+        public override string DbId => $"{this.Id}-{this.VersionId}";
         public string VersionId { get; set; }
         public DateTime OriginalCreatedAt { get; set; }
 

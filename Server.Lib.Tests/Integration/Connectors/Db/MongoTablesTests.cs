@@ -73,19 +73,36 @@ namespace Server.Lib.Tests.Integration.Connectors.Db
             var document = await this.CreateExpectedDocumentAsync(mongoTables);
 
             // Act + Assert.
-            await Assert.ThrowsAsync<MongoWriteException>(() => 
-                mongoTables.Users.InsertAsync(document));
+            await Assert.ThrowsAsync<MongoWriteException>(() => mongoTables.Users.InsertAsync(document));
         }
 
-        private async Task<CacheUser> CreateExpectedDocumentAsync(MongoTables mongoTables)
+        [Fact]
+        public async Task FetchLastVersion()
+        {
+            // Prepare.
+            var mongoTables = this.CreateMongoTables();
+            var expectedDocumentVersion1 = await this.CreateExpectedDocumentAsync(mongoTables);
+            var expectedDocumentVersion2 = await this.CreateExpectedDocumentAsync(mongoTables, expectedDocumentVersion1.Id, DateTime.UtcNow.AddHours(1));
+
+            // Act.
+            var actualDocument = await mongoTables.Users.FindLastVersionAsync(u => u.Id == expectedDocumentVersion1.Id);
+            
+            // Assert.
+            Assert.NotNull(actualDocument);
+            Assert.Equal(expectedDocumentVersion2.VersionId, actualDocument.VersionId);
+        }
+
+        private async Task<CacheUser> CreateExpectedDocumentAsync(MongoTables mongoTables, string id = null, DateTime? createdAt = null)
         {
             // Create the document.
             var expectedDocument = new CacheUser
             {
-                Id = Guid.NewGuid().ToString("N"),
+                Id = id ?? Guid.NewGuid().ToString("N"),
+                VersionId = Guid.NewGuid().ToString("N"),
                 Handle = "testhandle",
                 Email = "testemail@domain.com",
-                Entity = "https://entity.quentez.com"
+                Entity = "https://entity.quentez.com",
+                CreatedAt = createdAt.GetValueOrDefault(DateTime.UtcNow)
             };
 
             // Add it to the collection.

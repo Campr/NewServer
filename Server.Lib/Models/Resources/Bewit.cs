@@ -6,12 +6,13 @@ namespace Server.Lib.Models.Resources
 {
     public class Bewit : Resource
     {
+        public string BewitId { get; set; }
         public byte[] Key { get; set; }
         public DateTime? ExpiresAt { get; set; }
 
         public override string[][] CacheIds => new []
         {
-            new [] { "id", this.Id }
+            new [] { "bewitid", this.BewitId }
         };
 
         public override ApiResource ToApi()

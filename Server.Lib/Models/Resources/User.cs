@@ -9,7 +9,7 @@ namespace Server.Lib.Models.Resources
         public User(CacheUser cacheUser)
         {
         }
-
+        
         public string Handle { get; set; }
         public string Entity { get; set; }
         public string Email { get; set; }
@@ -21,7 +21,7 @@ namespace Server.Lib.Models.Resources
         public override string[][] CacheIds => new []
         {
             new [] { "id", this.Id },
-            new [] { "version", this.Id, this.VersionId },
+            new [] { "id-version", this.Id, this.VersionId },
             new [] { "entity", this.Entity },
             new [] { "email", this.Email }
         };
@@ -35,7 +35,6 @@ namespace Server.Lib.Models.Resources
         {
             return new CacheUser
             {
-                Id = this.Id,
                 CreatedAt = this.CreatedAt,
                 DeletedAt = this.DeletedAt,
                 VersionId = this.VersionId,
