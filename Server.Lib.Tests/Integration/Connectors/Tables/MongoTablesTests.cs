@@ -48,7 +48,6 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
             var actualDocument = await mongoTables.Users.FindAsync(u => u.Id == expectedDocument.Id);
 
             // Assert.
-            Assert.NotNull(actualDocument);
             AssertHelpers.HasEqualFieldValues(expectedDocument, actualDocument);
         }
 
@@ -63,7 +62,6 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
             var actualDocument = await mongoTables.Users.FindAsync(u => u.Email == expectedDocument.Email);
 
             // Assert.
-            Assert.NotNull(actualDocument);
             AssertHelpers.HasEqualFieldValues(expectedDocument, actualDocument);
         }
 
@@ -90,7 +88,6 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
             var actualDocument = await mongoTables.Users.FindLastVersionAsync(u => u.Id == expectedDocumentVersion1.Id);
             
             // Assert.
-            Assert.NotNull(actualDocument);
             AssertHelpers.HasEqualFieldValues(expectedDocumentVersion2, actualDocument);
         }
 

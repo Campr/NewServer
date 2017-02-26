@@ -9,6 +9,14 @@ namespace Server.Lib.Tests.Infrastructure
     {
         public static void HasEqualFieldValues<T>(T expected, T actual)
         {
+            // If both objects are null, no need to do anything.
+            if (expected == null && actual == null)
+                return;
+
+            // At this point, we don't want any null value.
+            Assert.NotNull(expected);
+            Assert.NotNull(actual);
+
             var targetType = typeof(T);
 
             // List all the members that we're interested in.

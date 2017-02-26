@@ -6,5 +6,6 @@ namespace Server.Lib.Helpers
     {
         string GenerateUniqueId();
         string BuildCacheKey(IEnumerable<string> cacheKeyParts);
+        string ToJsonPropertyName(string propertyName);
     }
 }

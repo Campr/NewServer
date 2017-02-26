@@ -1,29 +1,24 @@
-﻿using System.Linq;
-using MongoDB.Bson.Serialization;
+﻿using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
+using Server.Lib.Helpers;
+using Server.Lib.Infrastructure;
 
 namespace Server.Lib.Connectors.Tables.Mongo
 {
     public class SnakeCaseElementNameConvention : ConventionBase, IMemberMapConvention
     {
-        public void Apply(BsonMemberMap memberMap)
+        public SnakeCaseElementNameConvention(ITextHelpers textHelpers)
         {
-            var newName = this.GetElementName(memberMap.MemberName);
-            memberMap.SetElementName(newName);
+            Ensure.Argument.IsNotNull(textHelpers, nameof(textHelpers));
+            this.textHelpers = textHelpers;
         }
 
-        private string GetElementName(string memberName)
+        private readonly ITextHelpers textHelpers;
+        
+        public void Apply(BsonMemberMap memberMap)
         {
-            // Make sure we have something to work with.
-            if (string.IsNullOrWhiteSpace(memberName))
-                return memberName;
-
-            // Insert an underscore before all uppercase chars.
-            memberName = string.Concat(memberName.Select((c, i) =>
-                i > 0 && char.IsUpper(c) ? "_" + c.ToString() : c.ToString()));
-
-            // Convert to lowercase and return.
-            return memberName.ToLowerInvariant();
+            var newName = this.textHelpers.ToJsonPropertyName(memberMap.MemberName);
+            memberMap.SetElementName(newName);
         }
     }
 }

@@ -37,6 +37,22 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
         }
 
         [Fact]
+        public async Task StoreAndFetchNullValue()
+        {
+            // Prepare.
+            var redisCaches = await this.CreateRedisCachesAsync();
+            var cacheKey = "null_value";
+
+            // Act.
+            await redisCaches.Users.Save(new [] { cacheKey }, null);
+            var actualValue = await redisCaches.Users.Get(cacheKey);
+
+            // Assert.
+            Assert.True(actualValue.HasValue);
+            Assert.Null(actualValue.Value);
+        }
+
+        [Fact]
         public async Task FetchExistingById()
         {
             // Prepare.
@@ -47,7 +63,6 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
             var actualDocument = await redisCaches.Users.Get($"id/{this.global.EncodeCacheKeyPart(expectedDocument.Id)}");
 
             // Assert.
-            Assert.NotNull(actualDocument);
             AssertHelpers.HasEqualFieldValues(expectedDocument, actualDocument.Value);
         }
 
@@ -62,25 +77,43 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
             var actualDocument = await redisCaches.Users.Get($"entity/{this.global.EncodeCacheKeyPart(expectedDocument.Entity)}");
 
             // Assert.
-            Assert.NotNull(actualDocument);
             AssertHelpers.HasEqualFieldValues(expectedDocument, actualDocument.Value);
+        }
+
+        [Fact]
+        public async Task ReplaceLastVersionWithNew()
+        {
+            // Prepare.
+            var redisCaches = await this.CreateRedisCachesAsync();
+            var expectedDocumentVersion1 = await this.CreateExpectedDocumentAsync(redisCaches);
+            var expectedDocumentVersion2 = await this.CreateExpectedDocumentAsync(redisCaches, expectedDocumentVersion1.Id, DateTime.UtcNow.AddHours(1));
+
+            // Act.
+            var actualDocument1 = await redisCaches.Users.Get($"id/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}");
+            var actualDocument2 = await redisCaches.Users.Get($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.VersionId)}");
+            var actualDocument3 = await redisCaches.Users.Get($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.VersionId)}");
+
+            // Assert.
+            AssertHelpers.HasEqualFieldValues(expectedDocumentVersion2, actualDocument1.Value);
+            AssertHelpers.HasEqualFieldValues(expectedDocumentVersion1, actualDocument2.Value);
+            AssertHelpers.HasEqualFieldValues(expectedDocumentVersion2, actualDocument3.Value);
         }
 
         #endregion
 
         #region Boilerplate.
 
-        private async Task<CacheUser> CreateExpectedDocumentAsync(ICaches caches)
+        private async Task<CacheUser> CreateExpectedDocumentAsync(ICaches caches, string id = null, DateTime? createdAt = null)
         {
             // Create the document.
             var expectedDocument = new CacheUser
             {
-                Id = this.global.RandomId(),
+                Id = id ?? this.global.RandomId(),
                 VersionId = this.global.RandomId(),
                 Handle = "testhandle",
                 Email = "testemail@domain.com",
                 Entity = "https://entity.quentez.com",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = createdAt.GetValueOrDefault(DateTime.UtcNow)
             };
 
             // Create its variours cache Ids.

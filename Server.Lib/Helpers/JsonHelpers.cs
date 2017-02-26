@@ -10,18 +10,21 @@ namespace Server.Lib.Helpers
     {
         public JsonHelpers(
             ILoggingService loggingService,
+            ITextHelpers textHelpers,
             IConfiguration configuration)
         {
             Ensure.Argument.IsNotNull(loggingService, nameof(loggingService));
+            Ensure.Argument.IsNotNull(textHelpers, nameof(textHelpers));
             Ensure.Argument.IsNotNull(configuration, nameof(configuration));
 
-            this.loggingService = loggingService;
             this.configuration = configuration;
+            this.loggingService = loggingService;
 
             this.defaultFormatting = Formatting.None;
             this.defaultSettings = new JsonSerializerSettings
             {
-                TraceWriter = this
+                TraceWriter = this,
+                ContractResolver = new BaseContractResolver(textHelpers)
             };
         }
 

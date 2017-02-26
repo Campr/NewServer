@@ -5,6 +5,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Events;
+using Server.Lib.Helpers;
 using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources.Cache;
 using Server.Lib.Services;
@@ -14,11 +15,13 @@ namespace Server.Lib.Connectors.Tables.Mongo
     class MongoTables : Connector, ITables
     {
         public MongoTables(
-            IConfiguration configuration,
-            ILoggingService loggingService)
+            ILoggingService loggingService,
+            ITextHelpers textHelpers,
+            IConfiguration configuration)
         {
-            Ensure.Argument.IsNotNull(configuration, nameof(configuration));
             Ensure.Argument.IsNotNull(loggingService, nameof(loggingService));
+            Ensure.Argument.IsNotNull(textHelpers, nameof(textHelpers));
+            Ensure.Argument.IsNotNull(configuration, nameof(configuration));
 
             this.configuration = configuration;
 
@@ -44,7 +47,7 @@ namespace Server.Lib.Connectors.Tables.Mongo
 
             // Configure serialization.
             var conventionPack = new ConventionPack();
-            conventionPack.Add(new SnakeCaseElementNameConvention());
+            conventionPack.Add(new SnakeCaseElementNameConvention(textHelpers));
             ConventionRegistry.Register("snakeCase", conventionPack, t => true);
 
             // Create the client and get a reference to the Db.

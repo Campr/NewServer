@@ -1,4 +1,5 @@
 ﻿using System;
+using Server.Lib.Extensions;
 
 namespace Server.Lib.Models.Resources.Cache
 {
@@ -15,11 +16,12 @@ namespace Server.Lib.Models.Resources.Cache
                 return -1;
 
             // If the dates are equal, compare by Id.
-            if (this.CreatedAt == otherResource.CreatedAt)
+            var dateCompare = this.CreatedAt.CompareToMillisecond(otherResource.CreatedAt);
+            if (dateCompare == 0)
                 return string.Compare(this.VersionId, otherResource.VersionId, StringComparison.OrdinalIgnoreCase);
 
             // Otherwise, compare by date.
-            return this.CreatedAt.CompareTo(otherResource.CreatedAt);
+            return dateCompare;
         }
     }
 }

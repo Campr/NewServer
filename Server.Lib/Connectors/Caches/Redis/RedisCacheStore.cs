@@ -98,8 +98,8 @@ namespace Server.Lib.Connectors.Caches.Redis
                 {
                     var redisValue = fetchExistingValueTasks[cacheId];
                     transaction.AddCondition(redisValue.Result.HasValue
-                        ? Condition.StringEqual(cacheId, redisValue.Result)
-                        : Condition.KeyNotExists(cacheId));
+                        ? Condition.StringEqual(this.GetCacheKey(cacheId), redisValue.Result)
+                        : Condition.KeyNotExists(this.GetCacheKey(cacheId)));
                 }
             }
 
