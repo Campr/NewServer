@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Server.Lib.Connectors.Cache;
+using Server.Lib.Connectors.Caches;
 using Server.Lib.Extensions;
 using Server.Lib.Helpers;
 using Server.Lib.Infrastructure;
@@ -59,25 +59,34 @@ namespace Server.Lib.ScopeServices
 
                 // If none was found, try to fetch from the shared cache.
                 var cacheStore = this.caches.MakeForType<TCacheResource>();
-                var cacheResource = await cacheStore.Get(cacheId, cancellationToken);
+                var sharedCacheResource = await cacheStore.Get(cacheId, cancellationToken);
 
-                // If we still have none, use the fetcher to retrieve it.
-                var cacheMiss = cacheResource == null;
-                cacheResource = cacheResource ?? await fetcher(cancellationToken);
-
-                // If the resource is null, update the cache and return.
-                if (cacheResource == null)
+                // If "null" was found, return now.
+                if (sharedCacheResource.HasValue && sharedCacheResource.Value == null)
                 {
                     this.resources[cacheKey] = null;
                     return null;
                 }
 
-                // Otherwise, use the cache resource to load the resource.
+                // If we still have none, use the fetcher to retrieve it.
+                var cacheResource = sharedCacheResource.HasValue 
+                    ? sharedCacheResource.Value
+                    : await fetcher(cancellationToken);
+
+                // If the resource is null, update the caches and return.
+                if (cacheResource == null)
+                {
+                    this.resources[cacheKey] = null;
+                    await cacheStore.Save(new [] { cacheId }, null, cancellationToken);
+                    return null;
+                }
+
+                // Otherwise, use the cache resource to create the resource.
                 resource = await loader(cacheResource, cancellationToken);
                 var resourceCacheIds = resource.CacheIds.Select(c => this.textHelpers.BuildCacheKey(c)).ToArray();
 
                 // If needed, update the shared cache.
-                if (cacheMiss)
+                if (!sharedCacheResource.HasValue)
                 {
                     await cacheStore.Save(resourceCacheIds, (TCacheResource)resource.ToCache(), cancellationToken);
                 }
@@ -100,10 +109,25 @@ namespace Server.Lib.ScopeServices
                         if (otherCacheKeys.Any(c => this.resources.TryGetValue(c, out existingResource)))
                             resource = existingResource;
 
+                        // The keys to update will depend on whether this is a versioned resource or not.
+                        var versionedResource = resource as VersionedResource;
+                        var cacheKeysToUpdate = versionedResource == null
+                            ? otherCacheKeys
+                            : otherCacheKeys.Where(c =>
+                            {
+                                // None was found, update.
+                                var existingVersionedResource = this.resources.TryGetValue(c) as VersionedResource;
+                                if (existingVersionedResource == null)
+                                    return true;
+
+                                // Otherwise, compare the date and version Id.
+                                return versionedResource.CompareTo(existingVersionedResource) >= 0;
+                            }).ToList();
+
                         // Update all the keys with the new value.
-                        foreach (var otherCacheKey in otherCacheKeys)
+                        foreach (var cacheKeyToUpdate in cacheKeysToUpdate)
                         {
-                            this.resources[otherCacheKey] = resource;
+                            this.resources[cacheKeyToUpdate] = resource;
                         }
                     }
                 }

@@ -5,8 +5,9 @@ services:
 
 before_install:
 - docker run -d -p 27017:27017 --name mongo mongo
+- docker run -d -p 6379:6379 --name redis redis
 - docker run -v $(pwd):/app --name dotnet microsoft/dotnet sh -c "cd /app; dotnet restore"
 - docker commit dotnet build-dotnet
 
 script:
-- docker run -v $(pwd):/app --link mongo:mongo build-dotnet sh -c "cd /app/Server.Lib.Tests; dotnet test"
+- docker run -v $(pwd):/app --link mongo:mongo --link redis:redis build-dotnet sh -c "cd /app/Server.Lib.Tests; dotnet test"

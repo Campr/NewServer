@@ -5,9 +5,9 @@ using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources.Cache;
 using StackExchange.Redis;
 
-namespace Server.Lib.Connectors.Cache.Redis
+namespace Server.Lib.Connectors.Caches.Redis
 {
-    public class RedisCaches : Connector, ICaches
+    class RedisCaches : Connector, ICaches
     {
         public RedisCaches(
             IJsonHelpers jsonHelpers,
@@ -22,12 +22,12 @@ namespace Server.Lib.Connectors.Cache.Redis
             // Build the redis options from the provided configuration.
             this.redisOptions = new ConfigurationOptions
             {
-                Password = configuration.RedisPassword,
-                Ssl = true
+                Password = configuration.RedisPassword
+                //Ssl = true
             };
 
             // Copy the list of endpoints.
-            foreach (var kv in configuration.RedisEndoints)
+            foreach (var kv in configuration.RedisServers)
             {
                 this.redisOptions.EndPoints.Add(kv.Key, kv.Value);
             }

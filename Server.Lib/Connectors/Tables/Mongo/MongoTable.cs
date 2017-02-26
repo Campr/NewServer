@@ -6,7 +6,7 @@ using MongoDB.Driver;
 using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources.Cache;
 
-namespace Server.Lib.Connectors.Db.Mongo
+namespace Server.Lib.Connectors.Tables.Mongo
 {
     public class MongoTable<TCacheResource> : ITable<TCacheResource> where TCacheResource : CacheResource
     {

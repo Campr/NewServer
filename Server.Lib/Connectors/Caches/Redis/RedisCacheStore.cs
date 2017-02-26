@@ -6,7 +6,7 @@ using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources.Cache;
 using StackExchange.Redis;
 
-namespace Server.Lib.Connectors.Cache.Redis
+namespace Server.Lib.Connectors.Caches.Redis
 {
     public class RedisCacheStore<TCacheResource> : ICacheStore<TCacheResource> where TCacheResource : CacheResource
     {
@@ -24,7 +24,7 @@ namespace Server.Lib.Connectors.Cache.Redis
 
             // Find the cache key for this resource type.
             var resourceType = typeof(TCacheResource);
-            this.cacheKeyRoot = configuration.ResourceCacheKeys[resourceType];
+            this.cacheKeyRoot = configuration.CachePrefixes[resourceType];
         }
         
         private readonly IJsonHelpers jsonHelpers;
@@ -32,16 +32,20 @@ namespace Server.Lib.Connectors.Cache.Redis
 
         private readonly string cacheKeyRoot;
 
-        public async Task<TCacheResource> Get(string cacheId, CancellationToken cancellationToken)
+        public async Task<Optional<TCacheResource>> Get(string cacheId, CancellationToken cancellationToken)
         {
             // Retrieve the value from Redis.
             var cacheKey = this.GetCacheKey(cacheId);
             var stringValue = await this.db.StringGetAsync(cacheKey);
             if (!stringValue.HasValue)
-                return null;
+                return new Optional<TCacheResource>();
+
+            // If a value was found, but it's "null", return.
+            if (stringValue == "null")
+                return new Optional<TCacheResource>(null);
 
             // Deserialize and return.
-            return this.jsonHelpers.FromJsonString<TCacheResource>(stringValue);
+            return new Optional<TCacheResource>(this.jsonHelpers.FromJsonString<TCacheResource>(stringValue));
         }
 
         public async Task Save(string[] cacheIds, TCacheResource cacheResource, CancellationToken cancellationToken)
@@ -49,6 +53,15 @@ namespace Server.Lib.Connectors.Cache.Redis
             // We'll update the various cache keys in a redis transaction.
             var transaction = this.db.CreateTransaction();
             string[] cacheIdsToSave;
+
+            // If the value is null, make sure we don't overwrite anything.
+            if (cacheResource == null)
+            {
+                foreach (var cacheId in cacheIds)
+                {
+                    transaction.AddCondition(Condition.KeyNotExists(cacheId));
+                }
+            }
 
             // If this is not a versioned resource, save to all the provided Ids.
             var versionedCacheResource = cacheResource as CacheVersionedResource;
@@ -81,7 +94,7 @@ namespace Server.Lib.Connectors.Cache.Redis
                     .ToArray();
 
                 // Add conditions for the Ids that we're updating.
-                foreach (var cacheId in cacheIds)
+                foreach (var cacheId in cacheIdsToSave)
                 {
                     var redisValue = fetchExistingValueTasks[cacheId];
                     transaction.AddCondition(redisValue.Result.HasValue

@@ -1,32 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using Moq;
-using Server.Lib.Connectors.Db.Mongo;
+using Server.Lib.Connectors.Tables;
 using Server.Lib.Models.Resources.Cache;
-using Server.Lib.Services;
 using Server.Lib.Tests.Infrastructure;
 using Xunit;
 
-namespace Server.Lib.Tests.Integration.Connectors.Db
+namespace Server.Lib.Tests.Integration.Connectors.Tables
 {
     [Collection("Global")]
     public class MongoTablesTests
     {
         public MongoTablesTests(GlobalFixture globalFixture)
         {
-            this.testConfiguration = globalFixture.TestConfiguration;
+            this.global = globalFixture;
         }
 
-        private readonly IConfiguration testConfiguration;
+        private readonly GlobalFixture global;
+
+        #region Tests.
 
         [Fact]
         public async Task FailToFetchInexistingDocument()
         {
             // Prepare.
             var mongoTables = this.CreateMongoTables();
-            var expectedId = Guid.NewGuid().ToString("N");
+            var expectedId = this.global.RandomId();
 
             // Act.
             var actualDocument = await mongoTables.Users.FindAsync(u => u.Id == expectedId);
@@ -47,7 +49,7 @@ namespace Server.Lib.Tests.Integration.Connectors.Db
 
             // Assert.
             Assert.NotNull(actualDocument);
-            Assert.Equal(expectedDocument.Handle, actualDocument.Handle);
+            AssertHelpers.HasEqualFieldValues(expectedDocument, actualDocument);
         }
 
         [Fact]
@@ -62,7 +64,7 @@ namespace Server.Lib.Tests.Integration.Connectors.Db
 
             // Assert.
             Assert.NotNull(actualDocument);
-            Assert.Equal(expectedDocument.Handle, actualDocument.Handle);
+            AssertHelpers.HasEqualFieldValues(expectedDocument, actualDocument);
         }
 
         [Fact]
@@ -89,16 +91,20 @@ namespace Server.Lib.Tests.Integration.Connectors.Db
             
             // Assert.
             Assert.NotNull(actualDocument);
-            Assert.Equal(expectedDocumentVersion2.VersionId, actualDocument.VersionId);
+            AssertHelpers.HasEqualFieldValues(expectedDocumentVersion2, actualDocument);
         }
 
-        private async Task<CacheUser> CreateExpectedDocumentAsync(MongoTables mongoTables, string id = null, DateTime? createdAt = null)
+        #endregion
+
+        #region Boilerplate.
+
+        private async Task<CacheUser> CreateExpectedDocumentAsync(ITables mongoTables, string id = null, DateTime? createdAt = null)
         {
             // Create the document.
             var expectedDocument = new CacheUser
             {
-                Id = id ?? Guid.NewGuid().ToString("N"),
-                VersionId = Guid.NewGuid().ToString("N"),
+                Id = id ?? this.global.RandomId(),
+                VersionId = this.global.RandomId(),
                 Handle = "testhandle",
                 Email = "testemail@domain.com",
                 Entity = "https://entity.quentez.com",
@@ -110,28 +116,32 @@ namespace Server.Lib.Tests.Integration.Connectors.Db
             return expectedDocument;
         }
 
-        private MongoTables CreateMongoTables()
+        private ITables CreateMongoTables()
         {
             // Mock the configuration that we'll provide to the connector.
             var configurationMock = new Mock<IConfiguration>();
             configurationMock.SetupGet(c => c.MongoShouldInitialize).Returns(true);
             configurationMock.SetupGet(c => c.MongoDebug).Returns(false);
-            configurationMock.SetupGet(c => c.MongoServers).Returns(this.testConfiguration.MongoServers);
-            configurationMock.SetupGet(c => c.MongoDatabaseName).Returns(this.testConfiguration.MongoDatabaseName);
+            configurationMock.SetupGet(c => c.MongoServers).Returns(this.global.TestConfiguration.MongoServers);
+            configurationMock.SetupGet(c => c.MongoDatabaseName).Returns(this.global.TestConfiguration.MongoDatabaseName);
             configurationMock.SetupGet(c => c.MongoCollections).Returns(new Dictionary<Type, string>
             {
-                { typeof(CacheUser), Guid.NewGuid().ToString("N") }
+                { typeof(CacheUser), this.global.RandomId() }
             });
 
-            // Mock the logger.
-            var loggingServiceMock = new Mock<ILoggingService>();
+            // Create the services collection, and initialize the connector.
+            var services = new ServiceCollection();
+            ServerLibInitializer.RegisterTypes(services, configurationMock.Object);
+            var serviceProvider = services.BuildServiceProvider();
 
             // Create the class to test.
-            var mongoTables = new MongoTables(configurationMock.Object, loggingServiceMock.Object);
+            var mongoTables = serviceProvider.GetService<ITables>();
 
             // Initialize the tables.
             //await mongoTables.InitializeAsync(new CancellationToken());
             return mongoTables;
         }
+
+        #endregion
     }
 }

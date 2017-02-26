@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Server.Lib.Connectors.Blobs;
+using Server.Lib.Connectors.Queues;
 using Server.Lib.Models.Resources.Cache;
 
 namespace Server.Lib.Tests.Infrastructure
@@ -8,7 +10,18 @@ namespace Server.Lib.Tests.Infrastructure
     {
         public TestConfiguration()
         {
-            // Local mongo configuration.
+            // Local Redis configuration.
+            this.RedisServers = new []
+            {
+                new KeyValuePair<string, int>("redis", 6379)
+            };
+            this.RedisPassword = null;
+            this.CachePrefixes = new Dictionary<Type, string>
+            {
+                { typeof(CacheUser), "users" }
+            };
+
+            // Local Mongo configuration.
             this.MongoShouldInitialize = true;
             this.MongoDebug = false;
             this.MongoDatabaseName = Guid.NewGuid().ToString("N");
@@ -27,13 +40,15 @@ namespace Server.Lib.Tests.Infrastructure
 
         public string AwsAccessKey { get; }
         public string AwsAccessSecret { get; }
+        public BlobsConnectors BlobsConnector { get; }
         public string AwsBlobsRegion { get; }
         public bool AzureBlobsShouldInitialize { get; }
         public string AzureBlobsConnectionString { get; }
         public string FileBlobsPath { get; }
-        public IEnumerable<KeyValuePair<string, int>> RedisEndoints { get; }
+        public QueuesConnectors QueuesConnector { get; }
+        public IEnumerable<KeyValuePair<string, int>> RedisServers { get; }
         public string RedisPassword { get; }
-        public IDictionary<Type, string> ResourceCacheKeys { get; }
+        public IDictionary<Type, string> CachePrefixes { get; }
         public bool MongoShouldInitialize { get; }
         public bool MongoDebug { get; }
         public IEnumerable<KeyValuePair<string, int>> MongoServers { get; }

@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Server.Lib.Connectors.Db;
+using Server.Lib.Connectors.Tables;
 using Server.Lib.Helpers;
 using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources.Cache;

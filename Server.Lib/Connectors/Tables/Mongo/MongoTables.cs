@@ -9,9 +9,9 @@ using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources.Cache;
 using Server.Lib.Services;
 
-namespace Server.Lib.Connectors.Db.Mongo
+namespace Server.Lib.Connectors.Tables.Mongo
 {
-    public class MongoTables : Connector, ITables
+    class MongoTables : Connector, ITables
     {
         public MongoTables(
             IConfiguration configuration,

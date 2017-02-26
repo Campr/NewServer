@@ -2,7 +2,7 @@
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 
-namespace Server.Lib.Connectors.Db.Mongo
+namespace Server.Lib.Connectors.Tables.Mongo
 {
     public class SnakeCaseElementNameConvention : ConventionBase, IMemberMapConvention
     {

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using Server.Lib.Models.Resources.Cache;
 
-namespace Server.Lib.Connectors.Db.Mongo
+namespace Server.Lib.Connectors.Tables.Mongo
 {
     public class VersionedMongoTable<TCacheResource> : MongoTable<TCacheResource>, IVersionedTable<TCacheResource> where TCacheResource : CacheVersionedResource
     {
