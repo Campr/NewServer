@@ -53,6 +53,20 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
         }
 
         [Fact]
+        public async Task FailToReplaceExistingWithNull()
+        {
+            // Prepare.
+            var redisCaches = await this.CreateRedisCachesAsync();
+            var existingDocument = await this.CreateExpectedDocumentAsync(redisCaches);
+
+            // Act.
+            var saveTask = redisCaches.Users.Save(new [] { $"id/{this.global.EncodeCacheKeyPart(existingDocument.Id)}" }, null);
+
+            // Assert.
+            await Assert.ThrowsAsync<TaskCanceledException>(() => saveTask);
+        }
+
+        [Fact]
         public async Task FetchExistingById()
         {
             // Prepare.
@@ -95,6 +109,25 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
 
             // Assert.
             AssertHelpers.HasEqualFieldValues(expectedDocumentVersion2, actualDocument1.Value);
+            AssertHelpers.HasEqualFieldValues(expectedDocumentVersion1, actualDocument2.Value);
+            AssertHelpers.HasEqualFieldValues(expectedDocumentVersion2, actualDocument3.Value);
+        }
+         
+        [Fact]
+        public async Task DontReplaceLastVersionWithOld()
+        {
+            // Prepare.
+            var redisCaches = await this.CreateRedisCachesAsync();
+            var expectedDocumentVersion1 = await this.CreateExpectedDocumentAsync(redisCaches);
+            var expectedDocumentVersion2 = await this.CreateExpectedDocumentAsync(redisCaches, expectedDocumentVersion1.Id, DateTime.UtcNow.AddHours(-1));
+
+            // Act.
+            var actualDocument1 = await redisCaches.Users.Get($"id/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}");
+            var actualDocument2 = await redisCaches.Users.Get($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.VersionId)}");
+            var actualDocument3 = await redisCaches.Users.Get($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.VersionId)}");
+
+            // Assert.
+            AssertHelpers.HasEqualFieldValues(expectedDocumentVersion1, actualDocument1.Value);
             AssertHelpers.HasEqualFieldValues(expectedDocumentVersion1, actualDocument2.Value);
             AssertHelpers.HasEqualFieldValues(expectedDocumentVersion2, actualDocument3.Value);
         }

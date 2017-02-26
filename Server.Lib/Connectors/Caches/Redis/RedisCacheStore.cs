@@ -59,7 +59,7 @@ namespace Server.Lib.Connectors.Caches.Redis
             {
                 foreach (var cacheId in cacheIds)
                 {
-                    transaction.AddCondition(Condition.KeyNotExists(cacheId));
+                    transaction.AddCondition(Condition.KeyNotExists(this.GetCacheKey(cacheId)));
                 }
             }
 

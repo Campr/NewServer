@@ -72,8 +72,11 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
             var mongoTables = this.CreateMongoTables();
             var document = await this.CreateExpectedDocumentAsync(mongoTables);
 
-            // Act + Assert.
-            await Assert.ThrowsAsync<MongoWriteException>(() => mongoTables.Users.InsertAsync(document));
+            // Act.
+            var insertTask = mongoTables.Users.InsertAsync(document);
+
+            // Assert.
+            await Assert.ThrowsAsync<MongoWriteException>(() => insertTask);
         }
 
         [Fact]
