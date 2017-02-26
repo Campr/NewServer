@@ -22,6 +22,7 @@ namespace Server.Lib.Connectors.Caches.Redis
             // Build the redis options from the provided configuration.
             this.redisOptions = new ConfigurationOptions
             {
+                ResolveDns = true,
                 Password = configuration.RedisPassword
                 //Ssl = true
             };
