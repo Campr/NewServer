@@ -59,7 +59,7 @@ namespace Server.Lib.ScopeServices
 
                 // If none was found, try to fetch from the shared cache.
                 var cacheStore = this.caches.MakeForType<TCacheResource>();
-                var sharedCacheResource = await cacheStore.Get(cacheId, cancellationToken);
+                var sharedCacheResource = await cacheStore.GetAsync(cacheId, cancellationToken);
 
                 // If "null" was found, return now.
                 if (sharedCacheResource.HasValue && sharedCacheResource.Value == null)
@@ -77,7 +77,7 @@ namespace Server.Lib.ScopeServices
                 if (cacheResource == null)
                 {
                     this.resources[cacheKey] = null;
-                    await cacheStore.Save(new [] { cacheId }, null, cancellationToken);
+                    await cacheStore.SaveAsync(new [] { cacheId }, null, cancellationToken);
                     return null;
                 }
 
@@ -88,7 +88,7 @@ namespace Server.Lib.ScopeServices
                 // If needed, update the shared cache.
                 if (!sharedCacheResource.HasValue)
                 {
-                    await cacheStore.Save(resourceCacheIds, (TCacheResource)resource.ToCache(), cancellationToken);
+                    await cacheStore.SaveAsync(resourceCacheIds, (TCacheResource)resource.ToCache(), cancellationToken);
                 }
 
                 // If we have other keys, check their values.
@@ -160,7 +160,7 @@ namespace Server.Lib.ScopeServices
                 // Update the shared cache.
                 var cacheStore = this.caches.MakeForType<TCacheResource>();
                 var resourceCacheIds = resource.CacheIds.Select(c => this.textHelpers.BuildCacheKey(c)).ToArray();
-                await cacheStore.Save(resourceCacheIds, resource.ToCache(), cancellationToken);
+                await cacheStore.SaveAsync(resourceCacheIds, resource.ToCache(), cancellationToken);
 
                 // The keys to update will depend on whether this is a versioned resource or not.
                 var versionedResource = resource as VersionedResource<TCacheResource>;

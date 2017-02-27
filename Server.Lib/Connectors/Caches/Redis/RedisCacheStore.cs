@@ -32,7 +32,7 @@ namespace Server.Lib.Connectors.Caches.Redis
 
         private readonly string cacheKeyRoot;
 
-        public async Task<Optional<TCacheResource>> Get(string cacheId, CancellationToken cancellationToken)
+        public async Task<Optional<TCacheResource>> GetAsync(string cacheId, CancellationToken cancellationToken)
         {
             // Retrieve the value from Redis.
             var cacheKey = this.GetCacheKey(cacheId);
@@ -48,7 +48,7 @@ namespace Server.Lib.Connectors.Caches.Redis
             return new Optional<TCacheResource>(this.jsonHelpers.FromJsonString<TCacheResource>(stringValue));
         }
 
-        public async Task Save(string[] cacheIds, TCacheResource cacheResource, CancellationToken cancellationToken)
+        public async Task SaveAsync(string[] cacheIds, TCacheResource cacheResource, CancellationToken cancellationToken)
         {
             // We'll update the various cache keys in a redis transaction.
             var transaction = this.db.CreateTransaction();

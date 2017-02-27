@@ -30,7 +30,7 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
             var expectedId = this.global.RandomId();
 
             // Act.
-            var actualDocument = await redisCaches.Users.Get(expectedId);
+            var actualDocument = await redisCaches.Users.GetAsync(expectedId);
 
             // Assert.
             Assert.False(actualDocument.HasValue);
@@ -44,8 +44,8 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
             var cacheKey = "null_value";
 
             // Act.
-            await redisCaches.Users.Save(new [] { cacheKey }, null);
-            var actualValue = await redisCaches.Users.Get(cacheKey);
+            await redisCaches.Users.SaveAsync(new [] { cacheKey }, null);
+            var actualValue = await redisCaches.Users.GetAsync(cacheKey);
 
             // Assert.
             Assert.True(actualValue.HasValue);
@@ -60,7 +60,7 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
             var existingDocument = await this.CreateExpectedDocumentAsync(redisCaches);
 
             // Act.
-            var saveTask = redisCaches.Users.Save(new [] { $"id/{this.global.EncodeCacheKeyPart(existingDocument.Id)}" }, null);
+            var saveTask = redisCaches.Users.SaveAsync(new [] { $"id/{this.global.EncodeCacheKeyPart(existingDocument.Id)}" }, null);
 
             // Assert.
             await Assert.ThrowsAsync<TaskCanceledException>(() => saveTask);
@@ -74,7 +74,7 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
             var expectedDocument = await this.CreateExpectedDocumentAsync(redisCaches);
 
             // Act.
-            var actualDocument = await redisCaches.Users.Get($"id/{this.global.EncodeCacheKeyPart(expectedDocument.Id)}");
+            var actualDocument = await redisCaches.Users.GetAsync($"id/{this.global.EncodeCacheKeyPart(expectedDocument.Id)}");
 
             // Assert.
             AssertHelpers.HasEqualFieldValues(expectedDocument, actualDocument.Value);
@@ -88,7 +88,7 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
             var expectedDocument = await this.CreateExpectedDocumentAsync(redisCaches);
 
             // Act.
-            var actualDocument = await redisCaches.Users.Get($"entity/{this.global.EncodeCacheKeyPart(expectedDocument.Entity)}");
+            var actualDocument = await redisCaches.Users.GetAsync($"entity/{this.global.EncodeCacheKeyPart(expectedDocument.Entity)}");
 
             // Assert.
             AssertHelpers.HasEqualFieldValues(expectedDocument, actualDocument.Value);
@@ -103,9 +103,9 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
             var expectedDocumentVersion2 = await this.CreateExpectedDocumentAsync(redisCaches, expectedDocumentVersion1.Id, DateTime.UtcNow.AddHours(1));
 
             // Act.
-            var actualDocument1 = await redisCaches.Users.Get($"id/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}");
-            var actualDocument2 = await redisCaches.Users.Get($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.VersionId)}");
-            var actualDocument3 = await redisCaches.Users.Get($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.VersionId)}");
+            var actualDocument1 = await redisCaches.Users.GetAsync($"id/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}");
+            var actualDocument2 = await redisCaches.Users.GetAsync($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.VersionId)}");
+            var actualDocument3 = await redisCaches.Users.GetAsync($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.VersionId)}");
 
             // Assert.
             AssertHelpers.HasEqualFieldValues(expectedDocumentVersion2, actualDocument1.Value);
@@ -122,9 +122,9 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
             var expectedDocumentVersion2 = await this.CreateExpectedDocumentAsync(redisCaches, expectedDocumentVersion1.Id, DateTime.UtcNow.AddHours(-1));
 
             // Act.
-            var actualDocument1 = await redisCaches.Users.Get($"id/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}");
-            var actualDocument2 = await redisCaches.Users.Get($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.VersionId)}");
-            var actualDocument3 = await redisCaches.Users.Get($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.VersionId)}");
+            var actualDocument1 = await redisCaches.Users.GetAsync($"id/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}");
+            var actualDocument2 = await redisCaches.Users.GetAsync($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion1.VersionId)}");
+            var actualDocument3 = await redisCaches.Users.GetAsync($"id-version/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.Id)}/{this.global.EncodeCacheKeyPart(expectedDocumentVersion2.VersionId)}");
 
             // Assert.
             AssertHelpers.HasEqualFieldValues(expectedDocumentVersion1, actualDocument1.Value);
@@ -159,7 +159,7 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
             };
 
             // Add it to the cache.
-            await caches.Users.Save(cacheIds, expectedDocument);
+            await caches.Users.SaveAsync(cacheIds, expectedDocument);
             return expectedDocument;
         }
 

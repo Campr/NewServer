@@ -7,7 +7,7 @@ namespace Server.Lib.Connectors.Caches
 {
     public interface ICacheStore<TCacheResource> where TCacheResource : CacheResource
     {
-        Task<Optional<TCacheResource>> Get(string cacheId, CancellationToken cancellationToken = default(CancellationToken));
-        Task Save(string[] cacheIds, TCacheResource cacheResource, CancellationToken cancellationToken = default(CancellationToken));
+        Task<Optional<TCacheResource>> GetAsync(string cacheId, CancellationToken cancellationToken = default(CancellationToken));
+        Task SaveAsync(string[] cacheIds, TCacheResource cacheResource, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

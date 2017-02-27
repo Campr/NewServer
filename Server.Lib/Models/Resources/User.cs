@@ -8,6 +8,20 @@ namespace Server.Lib.Models.Resources
     {
         public User(CacheUser cacheUser)
         {
+            this.Id = cacheUser.Id;
+            this.CreatedAt = cacheUser.CreatedAt;
+            this.DeletedAt = cacheUser.DeletedAt;
+
+            this.VersionId = cacheUser.VersionId;
+            this.OriginalCreatedAt = cacheUser.OriginalCreatedAt;
+
+            this.Handle = cacheUser.Handle;
+            this.Entity = cacheUser.Entity;
+            this.Email = cacheUser.Email;
+            this.Password = cacheUser.Password;
+            this.PasswordSalt = cacheUser.PasswordSalt;
+            this.IsBotFollowed = cacheUser.IsBotFollowed;
+            this.LastDiscoveryAttempt = cacheUser.LastDiscoveryAttempt;
         }
         
         public string Handle { get; set; }
@@ -35,10 +49,13 @@ namespace Server.Lib.Models.Resources
         {
             return new CacheUser
             {
+                Id = this.Id,
                 CreatedAt = this.CreatedAt,
                 DeletedAt = this.DeletedAt,
+
                 VersionId = this.VersionId,
                 OriginalCreatedAt = this.OriginalCreatedAt,
+
                 Handle = this.Handle,
                 Entity = this.Entity,
                 Email = this.Email,
