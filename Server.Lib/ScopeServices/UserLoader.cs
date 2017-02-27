@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 using Server.Lib.Connectors.Tables;
 using Server.Lib.Helpers;
 using Server.Lib.Infrastructure;
+using Server.Lib.Models.Resources;
 using Server.Lib.Models.Resources.Cache;
-using Server.Lib.ScopeServices;
 
-namespace Server.Lib.Models.Resources.Factories
+namespace Server.Lib.ScopeServices
 {
-    class UserFactory : IUserFactory
+    class UserLoader : IUserLoader
     {
-        public UserFactory(
+        public UserLoader(
             ITables tables,
             ITextHelpers textHelpers,
             IResourceCacheService resourceCacheService)
@@ -56,6 +56,13 @@ namespace Server.Lib.Models.Resources.Factories
                     this.usersTable.FindLastVersionAsync(filter, ct)
                 , (cacheUser, ct) =>
                     Task.FromResult(new User(cacheUser))
+                , cancellationToken);
+        }
+
+        public Task SaveVersionAsync(User user, CancellationToken cancellationToken)
+        {
+            return this.resourceCacheService.WrapSaveAsync<User, CacheUser>(user, ct =>
+                    this.usersTable.InsertAsync(user.ToDb(), ct)
                 , cancellationToken);
         }
     }

@@ -25,14 +25,14 @@ namespace Server.Lib.ScopeServices
             this.textHelpers = textHelpers;
 
             // Create our collections.
-            this.resources = new Dictionary<string, Resource>();
+            this.resources = new Dictionary<string, object>();
             this.resourceLocks = new Dictionary<string, AsyncLock>();
         }
 
         private readonly ICaches caches;
         private readonly ITextHelpers textHelpers;
 
-        private readonly IDictionary<string, Resource> resources;
+        private readonly IDictionary<string, object> resources;
         private readonly IDictionary<string, AsyncLock> resourceLocks;
 
         public async Task<TResource> WrapFetchAsync<TResource, TCacheResource>(
@@ -40,7 +40,7 @@ namespace Server.Lib.ScopeServices
             Func<CancellationToken, Task<TCacheResource>> fetcher, 
             Func<TCacheResource, CancellationToken, Task<TResource>> loader,
             CancellationToken cancellationToken) 
-                where TResource : Resource 
+                where TResource : Resource<TCacheResource>
                 where TCacheResource : CacheResource
         {
             // Build the cache key for the requested resource.
@@ -48,14 +48,14 @@ namespace Server.Lib.ScopeServices
             var cacheKey = this.GetCacheKey(resourceType, cacheId);
 
             // Check if we already have a resource with the corresponding key.
-            if (this.resources.TryGetValue(cacheKey, out Resource resource))
-                return (TResource)resource;
+            if (this.resources.TryGetValue(cacheKey, out object objResource))
+                return (TResource)objResource;
 
             // If none was found, lock this key and try again.
             using (await this.GetResourceLock(cacheKey).LockAsync(cancellationToken))
             {
-                if (this.resources.TryGetValue(cacheKey, out resource))
-                    return (TResource)resource;
+                if (this.resources.TryGetValue(cacheKey, out objResource))
+                    return (TResource)objResource;
 
                 // If none was found, try to fetch from the shared cache.
                 var cacheStore = this.caches.MakeForType<TCacheResource>();
@@ -82,7 +82,7 @@ namespace Server.Lib.ScopeServices
                 }
 
                 // Otherwise, use the cache resource to create the resource.
-                resource = await loader(cacheResource, cancellationToken);
+                var resource = await loader(cacheResource, cancellationToken);
                 var resourceCacheIds = resource.CacheIds.Select(c => this.textHelpers.BuildCacheKey(c)).ToArray();
 
                 // If needed, update the shared cache.
@@ -105,18 +105,18 @@ namespace Server.Lib.ScopeServices
                     using (otherCacheKeyLockTasks.Select(t => t.Result).ToDisposable())
                     {
                         // Find an existing value.
-                        Resource existingResource = null;
+                        object existingResource = null;
                         if (otherCacheKeys.Any(c => this.resources.TryGetValue(c, out existingResource)))
-                            resource = existingResource;
+                            resource = (TResource)existingResource;
 
                         // The keys to update will depend on whether this is a versioned resource or not.
-                        var versionedResource = resource as VersionedResource;
+                        var versionedResource = resource as VersionedResource<TCacheResource>;
                         var cacheKeysToUpdate = versionedResource == null
                             ? otherCacheKeys
                             : otherCacheKeys.Where(c =>
                             {
                                 // None was found, update.
-                                var existingVersionedResource = this.resources.TryGetValue(c) as VersionedResource;
+                                var existingVersionedResource = this.resources.TryGetValue(c) as VersionedResource<TCacheResource>;
                                 if (existingVersionedResource == null)
                                     return true;
 
@@ -138,7 +138,12 @@ namespace Server.Lib.ScopeServices
             }
         }
 
-        public async Task SaveAsync<TResource>(TResource resource, Func<CancellationToken, Task> saver, CancellationToken cancellationToken = new CancellationToken()) where TResource : Resource
+        public async Task WrapSaveAsync<TResource, TCacheResource>(
+            TResource resource, 
+            Func<CancellationToken, Task> saver, 
+            CancellationToken cancellationToken = new CancellationToken()) 
+                where TResource : Resource<TCacheResource>
+                where TCacheResource : CacheResource
         {
             // Build the cache keys for the specified resource.
             var resourceType = typeof(TResource);
@@ -152,14 +157,19 @@ namespace Server.Lib.ScopeServices
                 // Save our resource.
                 await saver(cancellationToken);
 
+                // Update the shared cache.
+                var cacheStore = this.caches.MakeForType<TCacheResource>();
+                var resourceCacheIds = resource.CacheIds.Select(c => this.textHelpers.BuildCacheKey(c)).ToArray();
+                await cacheStore.Save(resourceCacheIds, resource.ToCache(), cancellationToken);
+
                 // The keys to update will depend on whether this is a versioned resource or not.
-                var versionedResource = resource as VersionedResource;
+                var versionedResource = resource as VersionedResource<TCacheResource>;
                 var cacheKeysToUpdate = versionedResource == null
                     ? cacheKeys
                     : cacheKeys.Where(c =>
                     {
                         // None was found, update.
-                        var existingVersionedResource = this.resources.TryGetValue(c) as VersionedResource;
+                        var existingVersionedResource = this.resources.TryGetValue(c) as VersionedResource<TCacheResource>;
                         if (existingVersionedResource == null)
                             return true;
 

@@ -6,12 +6,10 @@ namespace Server.Lib.Tests.Infrastructure
 {
     public class GlobalFixture
     {
-        public GlobalFixture()
+        public IConfiguration MakeTestConfiguration()
         {
-            this.TestConfiguration = new TestConfiguration();
+            return new TestConfiguration();
         }
-
-        public IConfiguration TestConfiguration { get; }
 
         public string RandomId()
         {

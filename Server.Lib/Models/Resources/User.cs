@@ -4,7 +4,7 @@ using Server.Lib.Models.Resources.Cache;
 
 namespace Server.Lib.Models.Resources
 {
-    public class User : VersionedResource
+    public class User : VersionedResource<CacheUser>
     {
         public User(CacheUser cacheUser)
         {
@@ -31,7 +31,7 @@ namespace Server.Lib.Models.Resources
             throw new NotImplementedException();
         }
 
-        public override CacheResource ToDb()
+        public override CacheUser ToDb()
         {
             return new CacheUser
             {

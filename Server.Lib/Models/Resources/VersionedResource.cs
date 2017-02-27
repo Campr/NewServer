@@ -1,14 +1,15 @@
 ﻿using System;
 using Server.Lib.Extensions;
+using Server.Lib.Models.Resources.Cache;
 
 namespace Server.Lib.Models.Resources
 {
-    public abstract class VersionedResource : Resource
+    public abstract class VersionedResource<TCacheResource> : Resource<TCacheResource> where TCacheResource : CacheResource
     {
         public string VersionId { get; set; }
         public DateTime OriginalCreatedAt { get; set; }
 
-        public int CompareTo(VersionedResource otherResource)
+        public int CompareTo(VersionedResource<TCacheResource> otherResource)
         {
             // Make sure we were given something to compare.
             if (otherResource == null)

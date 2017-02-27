@@ -13,12 +13,14 @@ namespace Server.Lib.ScopeServices
             Func<CancellationToken, Task<TCacheResource>> fetcher,
             Func<TCacheResource, CancellationToken, Task<TResource>> loader,
             CancellationToken cancellationToken = default(CancellationToken))
-                where TResource : Resource
+                where TResource : Resource<TCacheResource>
                 where TCacheResource : CacheResource;
 
-        Task SaveAsync<TResource>(
+        Task WrapSaveAsync<TResource, TCacheResource>(
             TResource resource, 
             Func<CancellationToken, Task> saver, 
-            CancellationToken cancellationToken = default(CancellationToken)) where TResource : Resource;
+            CancellationToken cancellationToken = default(CancellationToken)) 
+                where TResource : Resource<TCacheResource>
+                where TCacheResource : CacheResource;
     }
 }

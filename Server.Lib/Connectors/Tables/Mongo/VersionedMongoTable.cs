@@ -20,7 +20,7 @@ namespace Server.Lib.Connectors.Tables.Mongo
                 .Find(filter)
                 .SortByDescending(r => r.CreatedAt)
                 .ThenByDescending(r => r.VersionId)
-                .FirstAsync(cancellationToken);
+                .FirstOrDefaultAsync(cancellationToken);
         }
     }
 }

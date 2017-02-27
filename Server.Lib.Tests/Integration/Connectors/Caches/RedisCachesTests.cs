@@ -149,7 +149,7 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
                 CreatedAt = createdAt.GetValueOrDefault(DateTime.UtcNow)
             };
 
-            // Create its variours cache Ids.
+            // Create its various cache Ids.
             var cacheIds = new string[]
             {
                 $"id/{this.global.EncodeCacheKeyPart(expectedDocument.Id)}",
@@ -165,18 +165,9 @@ namespace Server.Lib.Tests.Integration.Connectors.Caches
 
         private async Task<ICaches> CreateRedisCachesAsync()
         {
-            // Mock the configuration that we'll provide to the connector.
-            var configurationMock = new Mock<IConfiguration>();
-            configurationMock.SetupGet(c => c.RedisPassword).Returns((string)null);
-            configurationMock.SetupGet(c => c.RedisServers).Returns(this.global.TestConfiguration.RedisServers);
-            configurationMock.SetupGet(c => c.CachePrefixes).Returns(new Dictionary<Type, string>
-            {
-                { typeof(CacheUser), this.global.RandomId() }
-            });
-
             // Create the services collection, and initialize the connector.
             var services = new ServiceCollection();
-            ServerLibInitializer.RegisterTypes(services, configurationMock.Object);
+            ServerLibInitializer.RegisterTypes(services, this.global.MakeTestConfiguration());
             var serviceProvider = services.BuildServiceProvider();
 
             // Create the class to test.

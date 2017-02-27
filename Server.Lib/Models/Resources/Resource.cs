@@ -4,13 +4,13 @@ using Server.Lib.Models.Resources.Cache;
 
 namespace Server.Lib.Models.Resources
 {
-    public abstract class Resource
+    public abstract class Resource<TCacheResource> where TCacheResource : CacheResource
     {
         public abstract string[][] CacheIds { get; }
         public abstract ApiResource ToApi();
-        public abstract CacheResource ToDb();
+        public abstract TCacheResource ToDb();
 
-        public virtual CacheResource ToCache()
+        public virtual TCacheResource ToCache()
         {
             return this.ToDb();
         }

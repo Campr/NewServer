@@ -38,6 +38,20 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
         }
 
         [Fact]
+        public async Task FailToFetchInexistingLastVersion()
+        {
+            // Prepare.
+            var mongoTables = this.CreateMongoTables();
+            var expectedId = this.global.RandomId();
+
+            // Act.
+            var actualDocument = await mongoTables.Users.FindLastVersionAsync(u => u.Id == expectedId);
+
+            // Assert.
+            Assert.Null(actualDocument);
+        }
+
+        [Fact]
         public async Task FetchExistingById()
         {
             // Prepare.
@@ -118,20 +132,9 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
 
         private ITables CreateMongoTables()
         {
-            // Mock the configuration that we'll provide to the connector.
-            var configurationMock = new Mock<IConfiguration>();
-            configurationMock.SetupGet(c => c.MongoShouldInitialize).Returns(true);
-            configurationMock.SetupGet(c => c.MongoDebug).Returns(false);
-            configurationMock.SetupGet(c => c.MongoServers).Returns(this.global.TestConfiguration.MongoServers);
-            configurationMock.SetupGet(c => c.MongoDatabaseName).Returns(this.global.TestConfiguration.MongoDatabaseName);
-            configurationMock.SetupGet(c => c.MongoCollections).Returns(new Dictionary<Type, string>
-            {
-                { typeof(CacheUser), this.global.RandomId() }
-            });
-
             // Create the services collection, and initialize the connector.
             var services = new ServiceCollection();
-            ServerLibInitializer.RegisterTypes(services, configurationMock.Object);
+            ServerLibInitializer.RegisterTypes(services, this.global.MakeTestConfiguration());
             var serviceProvider = services.BuildServiceProvider();
 
             // Create the class to test.

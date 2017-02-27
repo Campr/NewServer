@@ -18,7 +18,7 @@ namespace Server.Lib.Tests.Infrastructure
             this.RedisPassword = null;
             this.CachePrefixes = new Dictionary<Type, string>
             {
-                { typeof(CacheUser), "users" }
+                { typeof(CacheUser), Guid.NewGuid().ToString("N") }
             };
 
             // Local Mongo configuration.
@@ -31,7 +31,7 @@ namespace Server.Lib.Tests.Infrastructure
             };
             this.MongoCollections = new Dictionary<Type, string>
             {
-                { typeof(CacheUser), "users" }
+                { typeof(CacheUser), Guid.NewGuid().ToString("N") }
             };
 
             // Json.

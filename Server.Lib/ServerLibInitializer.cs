@@ -46,6 +46,7 @@ namespace Server.Lib
 
             // Scoped services.
             services.AddScoped<IResourceCacheService, ResourceCacheService>();
+            services.AddScoped<IUserLoader, UserLoader>();
         }
     }
 }
