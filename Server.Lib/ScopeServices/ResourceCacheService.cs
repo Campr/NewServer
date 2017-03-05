@@ -88,7 +88,7 @@ namespace Server.Lib.ScopeServices
                 // If needed, update the shared cache.
                 if (!sharedCacheResource.HasValue)
                 {
-                    await cacheStore.SaveAsync(resourceCacheIds, (TCacheResource)resource.ToCache(), cancellationToken);
+                    await cacheStore.SaveAsync(resourceCacheIds, resource.ToCache(), cancellationToken);
                 }
 
                 // If we have other keys, check their values.

@@ -104,6 +104,37 @@ namespace Server.Lib.Tests.Integration.ScopeServices
             userTableMock.Verify(u => u.FindLastVersionAsync(It.IsAny<Expression<Func<CacheUser, bool>>>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
+        [Fact]
+        public async Task FetchExistingTableDocument()
+        {
+            // Prepare.
+            var expectedUser = this.CreateExpectedCacheUser();
+            var expectedCacheKey = $"id/{this.global.EncodeCacheKeyPart(expectedUser.Id)}";
+
+            var userCacheMock = new Mock<ICacheStore<CacheUser>>();
+            userCacheMock
+                .Setup(u => u.GetAsync(expectedCacheKey, It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(new Optional<CacheUser>()));
+
+            var userTableMock = new Mock<IVersionedTable<CacheUser>>();
+            userTableMock
+                .Setup(u => u.FindLastVersionAsync(It.IsAny<Expression<Func<CacheUser, bool>>>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(expectedUser));
+
+            var userLoader = this.CreateUserLoader(userCacheMock.Object, userTableMock.Object);
+
+            // Act.
+            var actualResource = await userLoader.FetchAsync(expectedUser.Id);
+
+            // Assert.
+            Assert.NotNull(actualResource);
+            AssertHelpers.HasEqualFieldValues(expectedUser, actualResource.ToCache());
+
+            userCacheMock.Verify(u => u.GetAsync(expectedCacheKey, It.IsAny<CancellationToken>()), Times.Once);
+            userTableMock.Verify(u => u.FindLastVersionAsync(It.IsAny<Expression<Func<CacheUser, bool>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            userCacheMock.Verify(u => u.SaveAsync(It.IsAny<string[]>(), It.IsAny<CacheUser>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
         #endregion
 
         #region Boilerplate.
