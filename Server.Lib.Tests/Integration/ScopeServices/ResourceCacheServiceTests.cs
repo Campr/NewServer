@@ -7,6 +7,7 @@ using Moq;
 using Server.Lib.Connectors.Caches;
 using Server.Lib.Connectors.Tables;
 using Server.Lib.Infrastructure;
+using Server.Lib.Models.Resources;
 using Server.Lib.Models.Resources.Cache;
 using Server.Lib.ScopeServices;
 using Server.Lib.Tests.Infrastructure;
@@ -133,6 +134,30 @@ namespace Server.Lib.Tests.Integration.ScopeServices
             userCacheMock.Verify(u => u.GetAsync(expectedCacheKey, It.IsAny<CancellationToken>()), Times.Once);
             userTableMock.Verify(u => u.FindLastVersionAsync(It.IsAny<Expression<Func<CacheUser, bool>>>(), It.IsAny<CancellationToken>()), Times.Once);
             userCacheMock.Verify(u => u.SaveAsync(It.IsAny<string[]>(), It.IsAny<CacheUser>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task StoreAndFetchResource()
+        {
+            // Prepare.
+            var expectedUser = new User(this.CreateExpectedCacheUser());
+
+            var userCacheMock = new Mock<ICacheStore<CacheUser>>();
+            var userTableMock = new Mock<IVersionedTable<CacheUser>>();
+
+            var userLoader = this.CreateUserLoader(userCacheMock.Object, userTableMock.Object);
+
+            // Act.
+            await userLoader.SaveVersionAsync(expectedUser);
+            var actualUser1 = await userLoader.FetchAsync(expectedUser.Id);
+            var actualUser2 = await userLoader.FetchByEmailAsync(expectedUser.Email);
+
+            // Assert.
+            Assert.Equal(expectedUser, actualUser1);
+            Assert.Equal(expectedUser, actualUser2);
+
+            userCacheMock.Verify(u => u.SaveAsync(It.IsAny<string[]>(), It.IsAny<CacheUser>(), It.IsAny<CancellationToken>()), Times.Once);
+            userTableMock.Verify(u => u.InsertAsync(It.IsAny<CacheUser>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         #endregion
