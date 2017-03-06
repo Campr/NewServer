@@ -4,7 +4,7 @@ namespace Server.Lib.Connectors.Caches
 {
     public interface ICaches : IConnector
     {
-        ICacheStore<TCacheResource> MakeForType<TCacheResource>() where TCacheResource : CacheResource;
+        ICacheStore<TCacheResource> StoreForType<TCacheResource>() where TCacheResource : CacheResource;
         ICacheStore<CacheUser> Users { get; }
     }
 }

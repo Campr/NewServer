@@ -151,10 +151,12 @@ namespace Server.Lib.Tests.Integration.ScopeServices
             await userLoader.SaveVersionAsync(expectedUser);
             var actualUser1 = await userLoader.FetchAsync(expectedUser.Id);
             var actualUser2 = await userLoader.FetchByEmailAsync(expectedUser.Email);
+            var actualUser3 = await userLoader.FetchByEntityAsync(expectedUser.Entity);
 
             // Assert.
             Assert.Equal(expectedUser, actualUser1);
             Assert.Equal(expectedUser, actualUser2);
+            Assert.Equal(expectedUser, actualUser3);
 
             userCacheMock.Verify(u => u.SaveAsync(It.IsAny<string[]>(), It.IsAny<CacheUser>(), It.IsAny<CancellationToken>()), Times.Once);
             userTableMock.Verify(u => u.InsertAsync(It.IsAny<CacheUser>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -192,13 +194,13 @@ namespace Server.Lib.Tests.Integration.ScopeServices
             // Mock the caches.
             var cachesMock = new Mock<ICaches>();
             cachesMock.SetupGet(c => c.Users).Returns(userCache);
-            cachesMock.Setup(c => c.MakeForType<CacheUser>()).Returns(userCache);
+            cachesMock.Setup(c => c.StoreForType<CacheUser>()).Returns(userCache);
 
             services.AddSingleton(cachesMock.Object);
 
             // Mock the database.
             var tablesMock = new Mock<ITables>();
-            tablesMock.SetupGet(t => t.Users).Returns(userTable);
+            tablesMock.SetupGet(t => t.TableForVersionedType<CacheUser>()).Returns(userTable);
 
             services.AddSingleton(tablesMock.Object);
                 

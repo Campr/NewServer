@@ -2,7 +2,7 @@
 
 namespace Server.Lib.Models.Resources.Cache
 {
-    public class CacheUser : CacheVersionedResource
+    public class CacheUser : VersionedCacheResource
     {
         public string Handle { get; set; }
         public string Entity { get; set; }

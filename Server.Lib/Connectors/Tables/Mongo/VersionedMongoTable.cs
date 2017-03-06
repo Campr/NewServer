@@ -7,7 +7,7 @@ using Server.Lib.Models.Resources.Cache;
 
 namespace Server.Lib.Connectors.Tables.Mongo
 {
-    public class VersionedMongoTable<TCacheResource> : MongoTable<TCacheResource>, IVersionedTable<TCacheResource> where TCacheResource : CacheVersionedResource
+    public class VersionedMongoTable<TCacheResource> : MongoTable<TCacheResource>, IVersionedTable<TCacheResource> where TCacheResource : VersionedCacheResource
     {
         public VersionedMongoTable(IMongoCollection<TCacheResource> collection) : base(collection)
         {

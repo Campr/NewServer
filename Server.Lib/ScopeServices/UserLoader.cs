@@ -21,14 +21,14 @@ namespace Server.Lib.ScopeServices
             Ensure.Argument.IsNotNull(textHelpers, nameof(textHelpers));
             Ensure.Argument.IsNotNull(resourceCacheService, nameof(resourceCacheService));
             
-            this.usersTable = tables.Users;
             this.textHelpers = textHelpers;
             this.resourceCacheService = resourceCacheService;
+            this.usersTable = tables.TableForVersionedType<CacheUser>();
         }
         
-        private readonly IVersionedTable<CacheUser> usersTable;
         private readonly ITextHelpers textHelpers;
         private readonly IResourceCacheService resourceCacheService;
+        private readonly IVersionedTable<CacheUser> usersTable;
 
         public User MakeNew()
         {
@@ -37,33 +37,35 @@ namespace Server.Lib.ScopeServices
 
         public Task<User> FetchAsync(string userId, CancellationToken cancellationToken)
         {
+            Ensure.Argument.IsNotNullOrWhiteSpace(userId, nameof(userId));
             return this.FetchByFilterAsync(this.textHelpers.BuildCacheKey(new [] { "id", userId }), u => u.Id == userId, cancellationToken);
         }
 
         public Task<User> FetchByEntityAsync(string entity, CancellationToken cancellationToken)
         {
-            return this.FetchByFilterAsync(this.textHelpers.BuildCacheKey(new[] { "entity", entity }), u => u.Entity == entity, cancellationToken);
+            Ensure.Argument.IsNotNullOrWhiteSpace(entity, nameof(entity));
+            return this.FetchByFilterAsync(this.textHelpers.BuildCacheKey(new [] { "entity", entity }), u => u.Entity == entity, cancellationToken);
         }
 
         public Task<User> FetchByEmailAsync(string email, CancellationToken cancellationToken)
         {
-            return this.FetchByFilterAsync(this.textHelpers.BuildCacheKey(new[] { "email", email }), u => u.Email == email, cancellationToken);
+            Ensure.Argument.IsNotNullOrWhiteSpace(email, nameof(email));
+            return this.FetchByFilterAsync(this.textHelpers.BuildCacheKey(new [] { "email", email }), u => u.Email == email, cancellationToken);
         }
 
         private Task<User> FetchByFilterAsync(string cacheId, Expression<Func<CacheUser, bool>> filter, CancellationToken cancellationToken)
         {
-            return this.resourceCacheService.WrapFetchAsync(cacheId, ct =>
-                    this.usersTable.FindLastVersionAsync(filter, ct)
-                , (cacheUser, ct) =>
-                    Task.FromResult(new User(cacheUser))
-                , cancellationToken);
+            return this.resourceCacheService.WrapFetchAsync(cacheId, 
+                ct => this.usersTable.FindLastVersionAsync(filter, ct),
+                (cacheUser, ct) => Task.FromResult(new User(cacheUser)),
+                cancellationToken);
         }
 
         public Task SaveVersionAsync(User user, CancellationToken cancellationToken)
         {
-            return this.resourceCacheService.WrapSaveAsync<User, CacheUser>(user, ct =>
-                    this.usersTable.InsertAsync(user.ToDb(), ct)
-                , cancellationToken);
+            return this.resourceCacheService.WrapSaveAsync<User, CacheUser>(user, 
+                ct => this.usersTable.InsertAsync(user.ToDb(), ct),
+                cancellationToken);
         }
     }
 }

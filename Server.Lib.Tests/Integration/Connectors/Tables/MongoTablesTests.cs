@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
-using Moq;
 using Server.Lib.Connectors.Tables;
 using Server.Lib.Models.Resources.Cache;
 using Server.Lib.Tests.Infrastructure;
@@ -27,11 +25,11 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
         public async Task FailToFetchInexistingDocument()
         {
             // Prepare.
-            var mongoTables = this.CreateMongoTables();
+            var usersTable = this.CreateMongoUsersTable();
             var expectedId = this.global.RandomId();
 
             // Act.
-            var actualDocument = await mongoTables.Users.FindAsync(u => u.Id == expectedId);
+            var actualDocument = await usersTable.FindAsync(u => u.Id == expectedId);
 
             // Assert.
             Assert.Null(actualDocument);
@@ -41,11 +39,11 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
         public async Task FailToFetchInexistingLastVersion()
         {
             // Prepare.
-            var mongoTables = this.CreateMongoTables();
+            var usersTable = this.CreateMongoUsersTable();
             var expectedId = this.global.RandomId();
 
             // Act.
-            var actualDocument = await mongoTables.Users.FindLastVersionAsync(u => u.Id == expectedId);
+            var actualDocument = await usersTable.FindLastVersionAsync(u => u.Id == expectedId);
 
             // Assert.
             Assert.Null(actualDocument);
@@ -55,11 +53,11 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
         public async Task FetchExistingById()
         {
             // Prepare.
-            var mongoTables = this.CreateMongoTables();
-            var expectedDocument = await this.CreateExpectedDocumentAsync(mongoTables);
+            var usersTable = this.CreateMongoUsersTable();
+            var expectedDocument = await this.CreateExpectedDocumentAsync(usersTable);
 
             // Act.
-            var actualDocument = await mongoTables.Users.FindAsync(u => u.Id == expectedDocument.Id);
+            var actualDocument = await usersTable.FindAsync(u => u.Id == expectedDocument.Id);
 
             // Assert.
             AssertHelpers.HasEqualFieldValues(expectedDocument, actualDocument);
@@ -69,11 +67,11 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
         public async Task FetchExistingByOtherField()
         {
             // Prepare.
-            var mongoTables = this.CreateMongoTables();
-            var expectedDocument = await this.CreateExpectedDocumentAsync(mongoTables);
+            var usersTable = this.CreateMongoUsersTable();
+            var expectedDocument = await this.CreateExpectedDocumentAsync(usersTable);
 
             // Act.
-            var actualDocument = await mongoTables.Users.FindAsync(u => u.Email == expectedDocument.Email);
+            var actualDocument = await usersTable.FindAsync(u => u.Email == expectedDocument.Email);
 
             // Assert.
             AssertHelpers.HasEqualFieldValues(expectedDocument, actualDocument);
@@ -83,11 +81,11 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
         public async Task FailToInsertTwice()
         {
             // Prepare.
-            var mongoTables = this.CreateMongoTables();
-            var document = await this.CreateExpectedDocumentAsync(mongoTables);
+            var usersTable = this.CreateMongoUsersTable();
+            var document = await this.CreateExpectedDocumentAsync(usersTable);
 
             // Act.
-            var insertTask = mongoTables.Users.InsertAsync(document);
+            var insertTask = usersTable.InsertAsync(document);
 
             // Assert.
             await Assert.ThrowsAsync<MongoWriteException>(() => insertTask);
@@ -97,12 +95,12 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
         public async Task FetchLastVersion()
         {
             // Prepare.
-            var mongoTables = this.CreateMongoTables();
-            var expectedDocumentVersion1 = await this.CreateExpectedDocumentAsync(mongoTables);
-            var expectedDocumentVersion2 = await this.CreateExpectedDocumentAsync(mongoTables, expectedDocumentVersion1.Id, DateTime.UtcNow.AddHours(1));
+            var usersTable = this.CreateMongoUsersTable();
+            var expectedDocumentVersion1 = await this.CreateExpectedDocumentAsync(usersTable);
+            var expectedDocumentVersion2 = await this.CreateExpectedDocumentAsync(usersTable, expectedDocumentVersion1.Id, DateTime.UtcNow.AddHours(1));
 
             // Act.
-            var actualDocument = await mongoTables.Users.FindLastVersionAsync(u => u.Id == expectedDocumentVersion1.Id);
+            var actualDocument = await usersTable.FindLastVersionAsync(u => u.Id == expectedDocumentVersion1.Id);
             
             // Assert.
             AssertHelpers.HasEqualFieldValues(expectedDocumentVersion2, actualDocument);
@@ -112,7 +110,7 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
 
         #region Boilerplate.
 
-        private async Task<CacheUser> CreateExpectedDocumentAsync(ITables mongoTables, string id = null, DateTime? createdAt = null)
+        private async Task<CacheUser> CreateExpectedDocumentAsync(IVersionedTable<CacheUser> usersTable, string id = null, DateTime? createdAt = null)
         {
             // Create the document.
             var expectedDocument = new CacheUser
@@ -126,11 +124,11 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
             };
 
             // Add it to the collection.
-            await mongoTables.Users.InsertAsync(expectedDocument);
+            await usersTable.InsertAsync(expectedDocument);
             return expectedDocument;
         }
 
-        private ITables CreateMongoTables()
+        private IVersionedTable<CacheUser> CreateMongoUsersTable()
         {
             // Create the services collection, and initialize the connector.
             var services = new ServiceCollection();
@@ -142,7 +140,7 @@ namespace Server.Lib.Tests.Integration.Connectors.Tables
 
             // Initialize the tables.
             //await mongoTables.InitializeAsync(new CancellationToken());
-            return mongoTables;
+            return mongoTables.TableForVersionedType<CacheUser>();
         }
 
         #endregion

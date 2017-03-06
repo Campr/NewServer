@@ -3,13 +3,13 @@ using Server.Lib.Extensions;
 
 namespace Server.Lib.Models.Resources.Cache
 {
-    public class CacheVersionedResource : CacheResource
+    public class VersionedCacheResource : CacheResource
     {
         public override string DbId => $"{this.Id}-{this.VersionId}";
         public string VersionId { get; set; }
         public DateTime OriginalCreatedAt { get; set; }
 
-        public int CompareTo(CacheVersionedResource otherResource)
+        public int CompareTo(VersionedCacheResource otherResource)
         {
             // Make sure we were given something to compare.
             if (otherResource == null)

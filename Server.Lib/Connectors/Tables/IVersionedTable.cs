@@ -6,7 +6,7 @@ using Server.Lib.Models.Resources.Cache;
 
 namespace Server.Lib.Connectors.Tables
 {
-    public interface IVersionedTable<TCacheResource> : ITable<TCacheResource> where TCacheResource : CacheVersionedResource
+    public interface IVersionedTable<TCacheResource> : ITable<TCacheResource> where TCacheResource : VersionedCacheResource
     {
         Task<TCacheResource> FindLastVersionAsync(Expression<Func<TCacheResource, bool>> filter, CancellationToken cancellationToken = default(CancellationToken));
     }

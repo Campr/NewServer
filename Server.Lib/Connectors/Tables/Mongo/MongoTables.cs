@@ -54,9 +54,6 @@ namespace Server.Lib.Connectors.Tables.Mongo
             var client = new MongoClient(clientSettings);
             this.database = client.GetDatabase(configuration.MongoDatabaseName);
 
-            // Create references to our tables.
-            this.Users = new VersionedMongoTable<CacheUser>(this.database.GetCollection<CacheUser>(configuration.MongoCollections[typeof(CacheUser)]));
-
             // Create the initializer for this component.
             this.initializer = new TaskRunner(this.InitializeOnceAsync);
         }
@@ -116,6 +113,14 @@ namespace Server.Lib.Connectors.Tables.Mongo
                     cancellationToken);
         }
 
-        public IVersionedTable<CacheUser> Users { get; }
+        public ITable<TCacheResource> TableForType<TCacheResource>() where TCacheResource : CacheResource
+        {
+            return new MongoTable<TCacheResource>(this.database.GetCollection<TCacheResource>(this.configuration.MongoCollections[typeof(TCacheResource)]));
+        }
+
+        public IVersionedTable<TCacheResource> TableForVersionedType<TCacheResource>() where TCacheResource : VersionedCacheResource
+        {
+            return new VersionedMongoTable<TCacheResource>(this.database.GetCollection<TCacheResource>(this.configuration.MongoCollections[typeof(TCacheResource)]));
+        }
     }
 }

@@ -6,9 +6,13 @@ namespace Server.Lib.Models.Resources
 {
     public abstract class Resource<TCacheResource> where TCacheResource : CacheResource
     {
-        public abstract string[][] CacheIds { get; }
         public abstract ApiResource ToApi();
         public abstract TCacheResource ToDb();
+
+        public virtual string[][] CacheIds => new[]
+        {
+            new [] { "id", this.Id }
+        };
 
         public virtual TCacheResource ToCache()
         {

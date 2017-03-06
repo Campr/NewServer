@@ -64,7 +64,7 @@ namespace Server.Lib.Connectors.Caches.Redis
             }
 
             // If this is not a versioned resource, save to all the provided Ids.
-            var versionedCacheResource = cacheResource as CacheVersionedResource;
+            var versionedCacheResource = cacheResource as VersionedCacheResource;
             if (versionedCacheResource == null)
             {
                 cacheIdsToSave = cacheIds;
@@ -87,7 +87,7 @@ namespace Server.Lib.Connectors.Caches.Redis
                             return true;
 
                         // Otherwise, deserialize and test.
-                        var existingCacheResource = this.jsonHelpers.FromJsonString<CacheVersionedResource>(kv.Value.Result);
+                        var existingCacheResource = this.jsonHelpers.FromJsonString<VersionedCacheResource>(kv.Value.Result);
                         return versionedCacheResource.CompareTo(existingCacheResource) >= 0;
                     })
                     .Select(kv => kv.Key)

@@ -58,7 +58,7 @@ namespace Server.Lib.ScopeServices
                     return (TResource)objResource;
 
                 // If none was found, try to fetch from the shared cache.
-                var cacheStore = this.caches.MakeForType<TCacheResource>();
+                var cacheStore = this.caches.StoreForType<TCacheResource>();
                 var sharedCacheResource = await cacheStore.GetAsync(cacheId, cancellationToken);
 
                 // If "null" was found, return now.
@@ -158,7 +158,7 @@ namespace Server.Lib.ScopeServices
                 await saver(cancellationToken);
 
                 // Update the shared cache.
-                var cacheStore = this.caches.MakeForType<TCacheResource>();
+                var cacheStore = this.caches.StoreForType<TCacheResource>();
                 var resourceCacheIds = resource.CacheIds.Select(c => this.textHelpers.BuildCacheKey(c)).ToArray();
                 await cacheStore.SaveAsync(resourceCacheIds, resource.ToCache(), cancellationToken);
 

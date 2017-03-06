@@ -74,7 +74,7 @@ namespace Server.Lib.Connectors.Caches.Redis
             this.Users = new RedisCacheStore<CacheUser>(this.jsonHelpers, this.configuration, this.database);
         }
 
-        public ICacheStore<TCacheResource> MakeForType<TCacheResource>() where TCacheResource : CacheResource
+        public ICacheStore<TCacheResource> StoreForType<TCacheResource>() where TCacheResource : CacheResource
         {
             return new RedisCacheStore<TCacheResource>(this.jsonHelpers, this.configuration, this.database);
         }
