@@ -16,9 +16,8 @@ namespace Server.Lib.ScopeServices
                 where TResource : Resource<TCacheResource>
                 where TCacheResource : CacheResource;
 
-        Task WrapSaveAsync<TResource, TCacheResource>(
+        Task SaveAsync<TResource, TCacheResource>(
             TResource resource, 
-            Func<CancellationToken, Task> saver, 
             CancellationToken cancellationToken = default(CancellationToken)) 
                 where TResource : Resource<TCacheResource>
                 where TCacheResource : CacheResource;

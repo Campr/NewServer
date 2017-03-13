@@ -31,7 +31,7 @@ namespace Server.Lib.ScopeServices
             this.userLoader = userLoader;
             this.attachmentLoader = attachmentLoader;
             this.postLicenseLoader = postLicenseLoader;
-            this.postsTable = tables.TableForVersionedType<CachePost>();
+            this.postTable = tables.TableForVersionedType<CachePost>();
         }
 
         private readonly ITextHelpers textHelpers;
@@ -39,7 +39,7 @@ namespace Server.Lib.ScopeServices
         private readonly IUserLoader userLoader;
         private readonly IAttachmentLoader attachmentLoader;
         private readonly IPostLicenseLoader postLicenseLoader;
-        private readonly IVersionedTable<CachePost> postsTable;
+        private readonly IVersionedTable<CachePost> postTable;
 
         public Task<Post> FetchAsync(User user, string postId, CancellationToken cancellationToken)
         {
@@ -51,7 +51,7 @@ namespace Server.Lib.ScopeServices
 
             // Fetch the corresponding post.
             return this.resourceCacheService.WrapFetchAsync(cacheId, 
-                ct => this.postsTable.FindLastVersionAsync(p => p.UserId == user.Id && p.Id == postId, ct),
+                ct => this.postTable.FindLastVersionAsync(p => p.UserId == user.Id && p.Id == postId, ct),
                 this.FromCacheAsync, 
                 cancellationToken);
         }
@@ -67,7 +67,7 @@ namespace Server.Lib.ScopeServices
 
             // Fetch the corresponding post.
             return this.resourceCacheService.WrapFetchAsync(cacheId, 
-                ct => this.postsTable.FindAsync(p => p.UserId == user.Id && p.Id == postId && p.VersionId == versionId, ct),
+                ct => this.postTable.FindAsync(p => p.UserId == user.Id && p.Id == postId && p.VersionId == versionId, ct),
                 this.FromCacheAsync, 
                 cancellationToken);
         }
@@ -75,6 +75,7 @@ namespace Server.Lib.ScopeServices
         private Task<Post> FromCacheAsync(CachePost cachePost, CancellationToken cancellationToken)
         {
             return Post.FromCacheAsync(
+                this.resourceCacheService,
                 this.userLoader, 
                 this.attachmentLoader,
                 this.postLicenseLoader, 

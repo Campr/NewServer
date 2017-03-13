@@ -21,5 +21,10 @@ namespace Server.Lib.Models.Resources.Posts
         public string Id { get; }
         public string Name { get; }
         public string Url { get; }
+
+        public string ToCache()
+        {
+            return this.Id;
+        }
     }
 }

@@ -38,5 +38,16 @@ namespace Server.Lib.Models.Resources.Posts
         public string Category { get; private set; }
         public string Name { get; private set; }
         public string ContentType { get; private set; }
+
+        public CachePostAttachment ToCache()
+        {
+            return new CachePostAttachment
+            {
+                AttachmentId = this.Attachment.Id,
+                Category = this.Category,
+                Name = this.Name,
+                ContentType = this.ContentType
+            };
+        }
     }
 }

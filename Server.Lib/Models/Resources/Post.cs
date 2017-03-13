@@ -3,20 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Server.Lib.Connectors.Tables;
 using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources.Api;
 using Server.Lib.Models.Resources.Cache;
 using Server.Lib.Models.Resources.Posts;
 using Server.Lib.ScopeServices;
 using Server.Lib.Services;
+using StackExchange.Redis;
 
 namespace Server.Lib.Models.Resources
 {
     public class Post : VersionedResource<CachePost>
     {
-        #region Constructors.
+        #region Constructors and private fields.
+
+        public Post(IResourceCacheService resourceCacheService)
+        {
+            Ensure.Argument.IsNotNull(resourceCacheService, nameof(resourceCacheService));
+            this.resourceCacheService = resourceCacheService;
+        }
 
         public static async Task<Post> FromCacheAsync(
+            IResourceCacheService resourceCacheService,
             IUserLoader userLoader, 
             IAttachmentLoader attachmentLoader,
             IPostLicenseLoader postLicenseLoader,
@@ -50,7 +59,7 @@ namespace Server.Lib.Models.Resources
             var licenses = licensesTasks.Select(t => t.Result).ToList();
             Ensure.Dependency.IsNotNull(licenses, nameof(licenses));
 
-            return new Post
+            return new Post(resourceCacheService)
             {
                 Id = cachePost.Id,
                 VersionId = cachePost.VersionId,
@@ -75,6 +84,8 @@ namespace Server.Lib.Models.Resources
                 OriginalPublishedAt = cachePost.OriginalPublishedAt
             };
         }
+
+        private readonly IResourceCacheService resourceCacheService;
 
         #endregion
 
@@ -103,7 +114,6 @@ namespace Server.Lib.Models.Resources
 
         #endregion
 
-
         public override string[][] CacheIds => new []
         {
             new [] { "user-id", this.User.Id, this.Id },
@@ -115,9 +125,37 @@ namespace Server.Lib.Models.Resources
             throw new System.NotImplementedException();
         }
 
-        public override CachePost ToDb()
+        public override CachePost ToCache()
         {
-            throw new System.NotImplementedException();
+            return new CachePost
+            {
+                Id = this.Id,
+                VersionId = this.VersionId,
+
+                CreatedAt = this.CreatedAt,
+                DeletedAt = this.DeletedAt,
+                OriginalCreatedAt = this.OriginalPublishedAt,
+
+                // User.
+                UserId = this.User.Id,
+                OriginalEntity = this.OriginalEntity,
+
+                // Version.
+                Type = this.Type.ToString(),
+                Permissions = this.Permissions.ToCache(),
+                Links = this.Links.Select(l => l.ToCache()).ToList(),
+                Attachments = this.Attachments.Select(a => a.ToCache()).ToList(),
+                Licenses = this.Licenses.Select(l => l.ToCache()).ToList(),
+
+                // Dates.
+                PublishedAt = this.PublishedAt,
+                OriginalPublishedAt = this.OriginalPublishedAt
+            };
+        }
+
+        public override Task SaveAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return this.resourceCacheService.SaveAsync<Post, CachePost>(this, cancellationToken);
         }
     }
 }

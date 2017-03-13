@@ -11,6 +11,5 @@ namespace Server.Lib.Extensions
                 ? result 
                 : defaultValue;
         }
-
     }
 }

@@ -57,7 +57,7 @@ namespace Server.Lib.Models.Resources.Posts
 
         #region Serialization methods.
 
-        public CachePostReference ToTable()
+        public CachePostReference ToCache()
         {
             return new CachePostReference
             {

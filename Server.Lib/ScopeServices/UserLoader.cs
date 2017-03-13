@@ -23,16 +23,16 @@ namespace Server.Lib.ScopeServices
             
             this.textHelpers = textHelpers;
             this.resourceCacheService = resourceCacheService;
-            this.usersTable = tables.TableForVersionedType<CacheUser>();
+            this.userTable = tables.TableForVersionedType<CacheUser>();
         }
         
         private readonly ITextHelpers textHelpers;
         private readonly IResourceCacheService resourceCacheService;
-        private readonly IVersionedTable<CacheUser> usersTable;
+        private readonly IVersionedTable<CacheUser> userTable;
 
-        public User MakeNew()
+        public User MakeNew(CacheUser cacheUser)
         {
-            throw new System.NotImplementedException();
+            return User.FromCache(this.resourceCacheService, cacheUser);
         }
 
         public Task<User> FetchAsync(string userId, CancellationToken cancellationToken)
@@ -56,15 +56,8 @@ namespace Server.Lib.ScopeServices
         private Task<User> FetchByFilterAsync(string cacheId, Expression<Func<CacheUser, bool>> filter, CancellationToken cancellationToken)
         {
             return this.resourceCacheService.WrapFetchAsync(cacheId, 
-                ct => this.usersTable.FindLastVersionAsync(filter, ct),
-                (cacheUser, ct) => Task.FromResult(new User(cacheUser)),
-                cancellationToken);
-        }
-
-        public Task SaveVersionAsync(User user, CancellationToken cancellationToken)
-        {
-            return this.resourceCacheService.WrapSaveAsync<User, CacheUser>(user, 
-                ct => this.usersTable.InsertAsync(user.ToDb(), ct),
+                ct => this.userTable.FindLastVersionAsync(filter, ct),
+                (cacheUser, ct) => Task.FromResult(User.FromCache(this.resourceCacheService, cacheUser)),
                 cancellationToken);
         }
     }

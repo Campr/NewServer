@@ -1,13 +1,13 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Server.Lib.Models.Resources;
+using Server.Lib.Models.Resources.Cache;
 
 namespace Server.Lib.ScopeServices
 {
     public interface IUserLoader
     {
-        User MakeNew();
-        Task SaveVersionAsync(User user, CancellationToken cancellationToken = default(CancellationToken));
+        User MakeNew(CacheUser cacheUser);
 
         /// <summary>
         /// Fetch the last version of a single <see cref="User"/> by its Id.

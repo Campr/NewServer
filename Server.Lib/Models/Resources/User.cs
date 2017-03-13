@@ -1,29 +1,51 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Server.Lib.Connectors.Tables;
+using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources.Api;
 using Server.Lib.Models.Resources.Cache;
+using Server.Lib.ScopeServices;
 
 namespace Server.Lib.Models.Resources
 {
     public class User : VersionedResource<CacheUser>
     {
-        public User(CacheUser cacheUser)
+        #region Constructors and private fields.
+
+        public User(IResourceCacheService resourceCacheService)
         {
-            this.Id = cacheUser.Id;
-            this.CreatedAt = cacheUser.CreatedAt;
-            this.DeletedAt = cacheUser.DeletedAt;
-
-            this.VersionId = cacheUser.VersionId;
-            this.OriginalCreatedAt = cacheUser.OriginalCreatedAt;
-
-            this.Handle = cacheUser.Handle;
-            this.Entity = cacheUser.Entity;
-            this.Email = cacheUser.Email;
-            this.Password = cacheUser.Password;
-            this.PasswordSalt = cacheUser.PasswordSalt;
-            this.IsBotFollowed = cacheUser.IsBotFollowed;
-            this.LastDiscoveryAttempt = cacheUser.LastDiscoveryAttempt;
+            Ensure.Argument.IsNotNull(resourceCacheService, nameof(resourceCacheService));
+            this.resourceCacheService = resourceCacheService;
         }
-        
+
+        public static User FromCache(
+            IResourceCacheService resourceCacheService,
+            CacheUser cacheUser)
+        {
+            return new User(resourceCacheService)
+            {
+                Id = cacheUser.Id,
+                CreatedAt = cacheUser.CreatedAt,
+                DeletedAt = cacheUser.DeletedAt,
+
+                VersionId = cacheUser.VersionId,
+                OriginalCreatedAt = cacheUser.OriginalCreatedAt,
+
+                Handle = cacheUser.Handle,
+                Entity = cacheUser.Entity,
+                Email = cacheUser.Email,
+                Password = cacheUser.Password,
+                PasswordSalt = cacheUser.PasswordSalt,
+                IsBotFollowed = cacheUser.IsBotFollowed,
+                LastDiscoveryAttempt = cacheUser.LastDiscoveryAttempt
+            };
+        }
+
+        private readonly IResourceCacheService resourceCacheService;
+
+        #endregion
+
         public string Handle { get; set; }
         public string Entity { get; set; }
         public string Email { get; set; }
@@ -45,7 +67,7 @@ namespace Server.Lib.Models.Resources
             throw new NotImplementedException();
         }
 
-        public override CacheUser ToDb()
+        public override CacheUser ToCache()
         {
             return new CacheUser
             {
@@ -64,6 +86,11 @@ namespace Server.Lib.Models.Resources
                 IsBotFollowed = this.IsBotFollowed,
                 LastDiscoveryAttempt = this.LastDiscoveryAttempt
             };
+        }
+
+        public override Task SaveAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return this.resourceCacheService.SaveAsync<User, CacheUser>(this, cancellationToken);
         }
     }
 }

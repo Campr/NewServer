@@ -85,7 +85,7 @@ namespace Server.Lib.Tests.Integration.ScopeServices
         private async Task<User> CreateExpectedUserAsync(IUserLoader userLoader)
         {
             // Create the resource.
-            var user = new User(new CacheUser
+            var user = userLoader.MakeNew(new CacheUser
             {
                 Id = this.global.RandomId(),
                 VersionId = this.global.RandomId(),
@@ -96,7 +96,7 @@ namespace Server.Lib.Tests.Integration.ScopeServices
             });
 
             // Save it.
-            await userLoader.SaveVersionAsync(user);
+            await user.SaveAsync();
             return user;
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Server.Lib.Connectors.Caches;
+using Server.Lib.Connectors.Tables;
 using Server.Lib.Extensions;
 using Server.Lib.Helpers;
 using Server.Lib.Infrastructure;
@@ -15,12 +16,15 @@ namespace Server.Lib.ScopeServices
     class ResourceCacheService : IResourceCacheService
     {
         public ResourceCacheService(
+            ITables tables,
             ICaches caches, 
             ITextHelpers textHelpers)
         {
+            Ensure.Argument.IsNotNull(tables, nameof(tables));
             Ensure.Argument.IsNotNull(caches, nameof(caches));
             Ensure.Argument.IsNotNull(textHelpers, nameof(textHelpers));
 
+            this.tables = tables;
             this.caches = caches;
             this.textHelpers = textHelpers;
 
@@ -29,6 +33,7 @@ namespace Server.Lib.ScopeServices
             this.resourceLocks = new Dictionary<string, AsyncLock>();
         }
 
+        private readonly ITables tables;
         private readonly ICaches caches;
         private readonly ITextHelpers textHelpers;
 
@@ -138,9 +143,8 @@ namespace Server.Lib.ScopeServices
             }
         }
 
-        public async Task WrapSaveAsync<TResource, TCacheResource>(
+        public async Task SaveAsync<TResource, TCacheResource>(
             TResource resource, 
-            Func<CancellationToken, Task> saver, 
             CancellationToken cancellationToken = new CancellationToken()) 
                 where TResource : Resource<TCacheResource>
                 where TCacheResource : CacheResource
@@ -155,7 +159,8 @@ namespace Server.Lib.ScopeServices
             using (cacheKeyLockTasks.Select(t => t.Result).ToDisposable())
             {
                 // Save our resource.
-                await saver(cancellationToken);
+                var table = this.tables.TableForType<TCacheResource>();
+                await table.InsertAsync(resource.ToCache(), cancellationToken);
 
                 // Update the shared cache.
                 var cacheStore = this.caches.StoreForType<TCacheResource>();

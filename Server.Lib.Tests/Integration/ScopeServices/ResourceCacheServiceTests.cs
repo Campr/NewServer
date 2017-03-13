@@ -140,15 +140,17 @@ namespace Server.Lib.Tests.Integration.ScopeServices
         public async Task StoreAndFetchResource()
         {
             // Prepare.
-            var expectedUser = new User(this.CreateExpectedCacheUser());
-
             var userCacheMock = new Mock<ICacheStore<CacheUser>>();
             var userTableMock = new Mock<IVersionedTable<CacheUser>>();
+            var serviceProvider = this.CreateServiceProvider(userCacheMock.Object, userTableMock.Object);
 
-            var userLoader = this.CreateUserLoader(userCacheMock.Object, userTableMock.Object);
+            var resourceCacheService = serviceProvider.GetService<IResourceCacheService>();
+            var userLoader = serviceProvider.GetService<IUserLoader>();
+
+            var expectedUser = User.FromCache(resourceCacheService, this.CreateExpectedCacheUser());
 
             // Act.
-            await userLoader.SaveVersionAsync(expectedUser);
+            await expectedUser.SaveAsync();
             var actualUser1 = await userLoader.FetchAsync(expectedUser.Id);
             var actualUser2 = await userLoader.FetchByEmailAsync(expectedUser.Email);
             var actualUser3 = await userLoader.FetchByEntityAsync(expectedUser.Entity);
@@ -200,7 +202,8 @@ namespace Server.Lib.Tests.Integration.ScopeServices
 
             // Mock the database.
             var tablesMock = new Mock<ITables>();
-            tablesMock.SetupGet(t => t.TableForVersionedType<CacheUser>()).Returns(userTable);
+            tablesMock.Setup(t => t.TableForType<CacheUser>()).Returns(userTable);
+            tablesMock.Setup(t => t.TableForVersionedType<CacheUser>()).Returns(userTable);
 
             services.AddSingleton(tablesMock.Object);
                 

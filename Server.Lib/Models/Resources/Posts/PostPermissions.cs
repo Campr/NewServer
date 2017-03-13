@@ -42,5 +42,15 @@ namespace Server.Lib.Models.Resources.Posts
         public bool IsPublic { get; set; }
         public List<User> Users { get; set; }
         public List<PostReference> Groups { get; set; }
+
+        public CachePostPermissions ToCache()
+        {
+            return new CachePostPermissions
+            {
+                IsPublic = this.IsPublic,
+                Groups = this.Groups.Select(g => g.ToCache()).ToList(),
+                UserIds = this.Users.Select(u => u.Id).ToList()
+            };
+        }
     }
 }

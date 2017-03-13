@@ -38,7 +38,7 @@ namespace Server.Lib.ScopeServices
             // Fetch the resource.
             return this.resourceCacheService.WrapFetchAsync(cacheId,
                 ct => this.attachmentsTable.FindAsync(a => a.Id == id, ct),
-                (cacheAttachment, ct) => Task.FromResult(Attachment.FromCache(cacheAttachment)),
+                (cacheAttachment, ct) => Task.FromResult(Attachment.FromCache(this.resourceCacheService, cacheAttachment)),
                 cancellationToken);
         }
     }
