@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Server.Lib.Connectors.Tables;
+using Microsoft.WindowsAzure.Storage.Blob.Protocol;
+using Server.Lib.Helpers;
 using Server.Lib.Infrastructure;
+using Server.Lib.Models.PostContent;
 using Server.Lib.Models.Resources.Api;
 using Server.Lib.Models.Resources.Cache;
 using Server.Lib.ScopeServices;
@@ -19,10 +22,14 @@ namespace Server.Lib.Models.Resources
             this.resourceCacheService = resourceCacheService;
         }
 
+        private readonly IResourceCacheService resourceCacheService;
+
         public static User FromCache(
             IResourceCacheService resourceCacheService,
             CacheUser cacheUser)
         {
+            Ensure.Argument.IsNotNull(cacheUser, nameof(cacheUser));
+
             return new User(resourceCacheService)
             {
                 Id = cacheUser.Id,
@@ -33,7 +40,7 @@ namespace Server.Lib.Models.Resources
                 OriginalCreatedAt = cacheUser.OriginalCreatedAt,
 
                 Handle = cacheUser.Handle,
-                Entity = cacheUser.Entity,
+                Entity = new Uri(cacheUser.Entity),
                 Email = cacheUser.Email,
                 Password = cacheUser.Password,
                 PasswordSalt = cacheUser.PasswordSalt,
@@ -42,23 +49,43 @@ namespace Server.Lib.Models.Resources
             };
         }
 
-        private readonly IResourceCacheService resourceCacheService;
+        public static User FromMetaPost(
+            ITextHelpers textHelpers,
+            IResourceCacheService resourceCacheService,
+            ApiPost<MetaPostContent> metaPost)
+        {
+            Ensure.Argument.IsNotNull(metaPost, nameof(metaPost));
+
+            var dateNow = DateTime.UtcNow;
+            var metaContent = metaPost.Content;
+
+            return new User(resourceCacheService)
+            {
+                Id = textHelpers.GenerateUniqueId(),
+                CreatedAt = dateNow,
+                
+                OriginalCreatedAt = dateNow,
+                
+                Entity = metaContent.Entity
+            };
+        }
 
         #endregion
 
         public string Handle { get; set; }
-        public string Entity { get; set; }
+        public Uri Entity { get; set; }
         public string Email { get; set; }
         public byte[] Password { get; set; }
         public byte[] PasswordSalt { get; set; }
         public bool? IsBotFollowed { get; set; }
         public DateTime? LastDiscoveryAttempt { get; set; }
 
-        public override string[][] CacheIds => new []
+        protected override string[][] AllCacheIds => new []
         {
             new [] { "id", this.Id },
             new [] { "id-version", this.Id, this.VersionId },
-            new [] { "entity", this.Entity },
+            new [] { "entity", this.Entity.AbsoluteUri },
+            new [] { "handle", this.Handle },
             new [] { "email", this.Email }
         };
 
@@ -79,7 +106,7 @@ namespace Server.Lib.Models.Resources
                 OriginalCreatedAt = this.OriginalCreatedAt,
 
                 Handle = this.Handle,
-                Entity = this.Entity,
+                Entity = this.Entity.AbsoluteUri,
                 Email = this.Email,
                 Password = this.Password,
                 PasswordSalt = this.PasswordSalt,

@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Server.Lib.Connectors.Tables;
 using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources.Api;
 using Server.Lib.Models.Resources.Cache;
 using Server.Lib.Models.Resources.Posts;
 using Server.Lib.ScopeServices;
 using Server.Lib.Services;
-using StackExchange.Redis;
 
 namespace Server.Lib.Models.Resources
 {
@@ -26,21 +24,21 @@ namespace Server.Lib.Models.Resources
 
         public static async Task<Post> FromCacheAsync(
             IResourceCacheService resourceCacheService,
-            IUserLoader userLoader, 
+            IInternalUserLoader internalUserLoader, 
             IAttachmentLoader attachmentLoader,
             IPostLicenseLoader postLicenseLoader,
             CachePost cachePost,
             CancellationToken cancellationToken)
         {
-            Ensure.Argument.IsNotNull(userLoader, nameof(userLoader));
+            Ensure.Argument.IsNotNull(internalUserLoader, nameof(internalUserLoader));
             Ensure.Argument.IsNotNull(attachmentLoader, nameof(attachmentLoader));
             Ensure.Argument.IsNotNull(postLicenseLoader, nameof(postLicenseLoader));
             Ensure.Argument.IsNotNull(cachePost, nameof(cachePost));
 
             // Resolve dependencies.
-            var userTask = userLoader.FetchAsync(cachePost.UserId, cancellationToken);
-            var permissionsTask = PostPermissions.FromCacheAsync(userLoader, cachePost.Permissions, cancellationToken);
-            var linksTasks = cachePost.Links?.Select(r => PostReference.FromCacheAsync(userLoader, r, cancellationToken)).ToList() ?? new List<Task<PostReference>>();
+            var userTask = internalUserLoader.FetchAsync(cachePost.UserId, cancellationToken);
+            var permissionsTask = PostPermissions.FromCacheAsync(internalUserLoader, cachePost.Permissions, cancellationToken);
+            var linksTasks = cachePost.Links?.Select(r => PostReference.FromCacheAsync(internalUserLoader, r, cancellationToken)).ToList() ?? new List<Task<PostReference>>();
             var attachmentsTasks = cachePost.Attachments?.Select(a => PostAttachment.FromCacheAsync(attachmentLoader, a, cancellationToken)).ToList() ?? new List<Task<PostAttachment>>();
             var licensesTasks = cachePost.Licenses?.Select(l => postLicenseLoader.LoadAsync(l, cancellationToken)).ToList() ?? new List<Task<PostLicense>>();
 
@@ -114,7 +112,7 @@ namespace Server.Lib.Models.Resources
 
         #endregion
 
-        public override string[][] CacheIds => new []
+        protected override string[][] AllCacheIds => new []
         {
             new [] { "user-id", this.User.Id, this.Id },
             new [] { "user-id-version", this.User.Id, this.Id, this.VersionId }

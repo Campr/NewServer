@@ -11,9 +11,9 @@ using Xunit;
 namespace Server.Lib.Tests.Integration.ScopeServices
 {
     [Collection("Global")]
-    public class UserLoaderTests
+    public class InternalUserLoaderTests
     {
-        public UserLoaderTests(GlobalFixture globalFixture)
+        public InternalUserLoaderTests(GlobalFixture globalFixture)
         {
             this.global = globalFixture;
         }
@@ -26,11 +26,11 @@ namespace Server.Lib.Tests.Integration.ScopeServices
         public async Task FailToFetchInexistingResource()
         {
             // Prepare.
-            var userLoader = await this.CreateUserLoader();
+            var internalUserLoader = await this.CreateInternalUserLoader();
             var expectedId = this.global.RandomId();
 
             // Act.
-            var actualResource = await userLoader.FetchAsync(expectedId);
+            var actualResource = await internalUserLoader.FetchAsync(expectedId);
 
             // Assert.
             Assert.Null(actualResource);
@@ -40,11 +40,11 @@ namespace Server.Lib.Tests.Integration.ScopeServices
         public async Task FetchExistingById()
         {
             // Prepare.
-            var userLoader = await this.CreateUserLoader();
-            var expectedUser = await this.CreateExpectedUserAsync(userLoader);
+            var internalUserLoader = await this.CreateInternalUserLoader();
+            var expectedUser = await this.CreateExpectedUserAsync(internalUserLoader);
 
             // Act.
-            var actualUser = await userLoader.FetchAsync(expectedUser.Id);
+            var actualUser = await internalUserLoader.FetchAsync(expectedUser.Id);
 
             // Assert.
             Assert.Equal(expectedUser, actualUser);
@@ -54,11 +54,11 @@ namespace Server.Lib.Tests.Integration.ScopeServices
         public async Task FetchExistingByEmail()
         {
             // Prepare.
-            var userLoader = await this.CreateUserLoader();
-            var expectedUser = await this.CreateExpectedUserAsync(userLoader);
+            var internalUserLoader = await this.CreateInternalUserLoader();
+            var expectedUser = await this.CreateExpectedUserAsync(internalUserLoader);
 
             // Act.
-            var actualUser = await userLoader.FetchByEmailAsync(expectedUser.Email);
+            var actualUser = await internalUserLoader.FetchByEmailAsync(expectedUser.Email);
 
             // Assert.
             Assert.Equal(expectedUser, actualUser);
@@ -68,11 +68,11 @@ namespace Server.Lib.Tests.Integration.ScopeServices
         public async Task FetchExistingByEntity()
         {
             // Prepare.
-            var userLoader = await this.CreateUserLoader();
-            var expectedUser = await this.CreateExpectedUserAsync(userLoader);
+            var internalUserLoader = await this.CreateInternalUserLoader();
+            var expectedUser = await this.CreateExpectedUserAsync(internalUserLoader);
 
             // Act.
-            var actualUser = await userLoader.FetchByEntityAsync(expectedUser.Entity);
+            var actualUser = await internalUserLoader.FetchByEntityAsync(expectedUser.Entity);
 
             // Assert.
             Assert.Equal(expectedUser, actualUser);
@@ -82,10 +82,10 @@ namespace Server.Lib.Tests.Integration.ScopeServices
 
         #region Boilerplate.
 
-        private async Task<User> CreateExpectedUserAsync(IUserLoader userLoader)
+        private async Task<User> CreateExpectedUserAsync(IInternalUserLoader internalUserLoader)
         {
             // Create the resource.
-            var user = userLoader.MakeNew(new CacheUser
+            var user = internalUserLoader.MakeNew(new CacheUser
             {
                 Id = this.global.RandomId(),
                 VersionId = this.global.RandomId(),
@@ -100,10 +100,10 @@ namespace Server.Lib.Tests.Integration.ScopeServices
             return user;
         }
 
-        private async Task<IUserLoader> CreateUserLoader()
+        private async Task<IInternalUserLoader> CreateInternalUserLoader()
         {
             var serviceProvider = await this.CreateServiceProvider();
-            return serviceProvider.GetService<IUserLoader>();
+            return serviceProvider.GetService<IInternalUserLoader>();
         }
 
         private async Task<IServiceProvider> CreateServiceProvider()

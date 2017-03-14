@@ -9,26 +9,26 @@ using Server.Lib.Services;
 
 namespace Server.Lib.ScopeServices
 {
-    class PostLoader : IPostLoader
+    class InternalPostLoader : IInternalPostLoader
     {
-        public PostLoader(
+        public InternalPostLoader(
             ITables tables,
             IPostLicenseLoader postLicenseLoader,
             ITextHelpers textHelpers,
             IResourceCacheService resourceCacheService,
-            IUserLoader userLoader,
+            IInternalUserLoader internalUserLoader,
             IAttachmentLoader attachmentLoader)
         {
             Ensure.Argument.IsNotNull(tables, nameof(tables));
             Ensure.Argument.IsNotNull(postLicenseLoader, nameof(postLicenseLoader));
             Ensure.Argument.IsNotNull(textHelpers, nameof(textHelpers));
             Ensure.Argument.IsNotNull(resourceCacheService, nameof(resourceCacheService));
-            Ensure.Argument.IsNotNull(userLoader, nameof(userLoader));
+            Ensure.Argument.IsNotNull(internalUserLoader, nameof(internalUserLoader));
             Ensure.Argument.IsNotNull(attachmentLoader, nameof(attachmentLoader));
 
             this.textHelpers = textHelpers;
             this.resourceCacheService = resourceCacheService;
-            this.userLoader = userLoader;
+            this.internalUserLoader = internalUserLoader;
             this.attachmentLoader = attachmentLoader;
             this.postLicenseLoader = postLicenseLoader;
             this.postTable = tables.TableForVersionedType<CachePost>();
@@ -36,7 +36,7 @@ namespace Server.Lib.ScopeServices
 
         private readonly ITextHelpers textHelpers;
         private readonly IResourceCacheService resourceCacheService;
-        private readonly IUserLoader userLoader;
+        private readonly IInternalUserLoader internalUserLoader;
         private readonly IAttachmentLoader attachmentLoader;
         private readonly IPostLicenseLoader postLicenseLoader;
         private readonly IVersionedTable<CachePost> postTable;
@@ -76,7 +76,7 @@ namespace Server.Lib.ScopeServices
         {
             return Post.FromCacheAsync(
                 this.resourceCacheService,
-                this.userLoader, 
+                this.internalUserLoader, 
                 this.attachmentLoader,
                 this.postLicenseLoader, 
                 cachePost, 

@@ -11,15 +11,15 @@ namespace Server.Lib.Models.Resources.Posts
         #region Constructors
 
         public static async Task<PostReference> FromCacheAsync(
-            IUserLoader userLoader, 
+            IInternalUserLoader internalUserLoader, 
             CachePostReference cachePostReference,
             CancellationToken cancellationToken)
         {
-            Ensure.Argument.IsNotNull(userLoader, nameof(userLoader));
+            Ensure.Argument.IsNotNull(internalUserLoader, nameof(internalUserLoader));
             Ensure.Argument.IsNotNull(cachePostReference, nameof(cachePostReference));
 
             // Retrieve dependencies.
-            var user = await userLoader.FetchAsync(cachePostReference.UserId, cancellationToken);
+            var user = await internalUserLoader.FetchAsync(cachePostReference.UserId, cancellationToken);
             Ensure.Dependency.IsNotNull(user, nameof(user));
 
             return new PostReference

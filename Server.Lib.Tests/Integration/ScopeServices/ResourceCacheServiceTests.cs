@@ -40,10 +40,10 @@ namespace Server.Lib.Tests.Integration.ScopeServices
                 .Returns(Task.FromResult(new Optional<CacheUser>(null)));
 
             var userTableMock = new Mock<IVersionedTable<CacheUser>>();
-            var userLoader = this.CreateUserLoader(userCacheMock.Object, userTableMock.Object);
+            var internalUserLoader = this.CreateInternalUserLoader(userCacheMock.Object, userTableMock.Object);
 
             // Act.
-            var actualResource = await userLoader.FetchAsync(expectedId);
+            var actualResource = await internalUserLoader.FetchAsync(expectedId);
 
             // Assert.
             Assert.Null(actualResource);
@@ -68,10 +68,10 @@ namespace Server.Lib.Tests.Integration.ScopeServices
                 .Setup(u => u.FindLastVersionAsync(It.IsAny<Expression<Func<CacheUser, bool>>>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult((CacheUser)null));
             
-            var userLoader = this.CreateUserLoader(userCacheMock.Object, userTableMock.Object);
+            var internalUserLoader = this.CreateInternalUserLoader(userCacheMock.Object, userTableMock.Object);
 
             // Act.
-            var actualResource = await userLoader.FetchAsync(expectedId);
+            var actualResource = await internalUserLoader.FetchAsync(expectedId);
 
             // Assert.
             Assert.Null(actualResource);
@@ -92,10 +92,10 @@ namespace Server.Lib.Tests.Integration.ScopeServices
                 .Returns(Task.FromResult(new Optional<CacheUser>(expectedUser)));
 
             var userTableMock = new Mock<IVersionedTable<CacheUser>>();
-            var userLoader = this.CreateUserLoader(userCacheMock.Object, userTableMock.Object);
+            var internalUserLoader = this.CreateInternalUserLoader(userCacheMock.Object, userTableMock.Object);
 
             // Act.
-            var actualResource = await userLoader.FetchAsync(expectedUser.Id);
+            var actualResource = await internalUserLoader.FetchAsync(expectedUser.Id);
 
             // Assert.
             Assert.NotNull(actualResource);
@@ -122,10 +122,10 @@ namespace Server.Lib.Tests.Integration.ScopeServices
                 .Setup(u => u.FindLastVersionAsync(It.IsAny<Expression<Func<CacheUser, bool>>>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(expectedUser));
 
-            var userLoader = this.CreateUserLoader(userCacheMock.Object, userTableMock.Object);
+            var internalUserLoader = this.CreateInternalUserLoader(userCacheMock.Object, userTableMock.Object);
 
             // Act.
-            var actualResource = await userLoader.FetchAsync(expectedUser.Id);
+            var actualResource = await internalUserLoader.FetchAsync(expectedUser.Id);
 
             // Assert.
             Assert.NotNull(actualResource);
@@ -145,15 +145,15 @@ namespace Server.Lib.Tests.Integration.ScopeServices
             var serviceProvider = this.CreateServiceProvider(userCacheMock.Object, userTableMock.Object);
 
             var resourceCacheService = serviceProvider.GetService<IResourceCacheService>();
-            var userLoader = serviceProvider.GetService<IUserLoader>();
+            var internalUserLoader = serviceProvider.GetService<IInternalUserLoader>();
 
             var expectedUser = User.FromCache(resourceCacheService, this.CreateExpectedCacheUser());
 
             // Act.
             await expectedUser.SaveAsync();
-            var actualUser1 = await userLoader.FetchAsync(expectedUser.Id);
-            var actualUser2 = await userLoader.FetchByEmailAsync(expectedUser.Email);
-            var actualUser3 = await userLoader.FetchByEntityAsync(expectedUser.Entity);
+            var actualUser1 = await internalUserLoader.FetchAsync(expectedUser.Id);
+            var actualUser2 = await internalUserLoader.FetchByEmailAsync(expectedUser.Email);
+            var actualUser3 = await internalUserLoader.FetchByEntityAsync(expectedUser.Entity);
 
             // Assert.
             Assert.Equal(expectedUser, actualUser1);
@@ -181,10 +181,10 @@ namespace Server.Lib.Tests.Integration.ScopeServices
             };
         }
 
-        private IUserLoader CreateUserLoader(ICacheStore<CacheUser> userCache, IVersionedTable<CacheUser> userTable)
+        private IInternalUserLoader CreateInternalUserLoader(ICacheStore<CacheUser> userCache, IVersionedTable<CacheUser> userTable)
         {
             var serviceProvider = this.CreateServiceProvider(userCache, userTable);
-            return serviceProvider.GetService<IUserLoader>();
+            return serviceProvider.GetService<IInternalUserLoader>();
         }
 
         private IServiceProvider CreateServiceProvider(ICacheStore<CacheUser> userCache, IVersionedTable<CacheUser> userTable)

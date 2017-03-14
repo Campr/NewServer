@@ -1,64 +1,70 @@
 ﻿using System;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Server.Lib.Connectors.Tables;
 using Server.Lib.Helpers;
 using Server.Lib.Infrastructure;
 using Server.Lib.Models.Resources;
-using Server.Lib.Models.Resources.Cache;
+using Server.Lib.Services;
 
 namespace Server.Lib.ScopeServices
 {
     class UserLoader : IUserLoader
     {
         public UserLoader(
-            ITables tables,
-            ITextHelpers textHelpers,
-            IResourceCacheService resourceCacheService)
+            IInternalUserLoader internalUserLoader,
+            IExternalUserLoader externalUserLoader,
+            ITaskHelpers taskHelpers,
+            IUriHelpers uriHelpers)
         {
-            Ensure.Argument.IsNotNull(tables, nameof(tables));
-            Ensure.Argument.IsNotNull(textHelpers, nameof(textHelpers));
-            Ensure.Argument.IsNotNull(resourceCacheService, nameof(resourceCacheService));
-            
-            this.textHelpers = textHelpers;
-            this.resourceCacheService = resourceCacheService;
-            this.userTable = tables.TableForVersionedType<CacheUser>();
+            Ensure.Argument.IsNotNull(internalUserLoader, nameof(internalUserLoader));
+            Ensure.Argument.IsNotNull(externalUserLoader, nameof(externalUserLoader));
+            Ensure.Argument.IsNotNull(taskHelpers, nameof(taskHelpers));
+            Ensure.Argument.IsNotNull(uriHelpers, nameof(uriHelpers));
+
+            this.internalUserLoader = internalUserLoader;
+            this.externalUserLoader = externalUserLoader;
+            this.taskHelpers = taskHelpers;
+            this.uriHelpers = uriHelpers;
         }
+
+        private readonly IInternalUserLoader internalUserLoader;
+        private readonly IExternalUserLoader externalUserLoader;
+        private readonly ITaskHelpers taskHelpers;
+        private readonly IUriHelpers uriHelpers;
         
-        private readonly ITextHelpers textHelpers;
-        private readonly IResourceCacheService resourceCacheService;
-        private readonly IVersionedTable<CacheUser> userTable;
-
-        public User MakeNew(CacheUser cacheUser)
+        public async Task<User> FetchByEntity(Uri entity, CancellationToken cancellationToken)
         {
-            return User.FromCache(this.resourceCacheService, cacheUser);
-        }
+            Ensure.Argument.IsNotNull(entity, nameof(entity));
 
-        public Task<User> FetchAsync(string userId, CancellationToken cancellationToken)
-        {
-            Ensure.Argument.IsNotNullOrWhiteSpace(userId, nameof(userId));
-            return this.FetchByFilterAsync(this.textHelpers.BuildCacheKey(new [] { "id", userId }), u => u.Id == userId, cancellationToken);
-        }
+            // Try to retrieve the user internally.
+            var user = await this.internalUserLoader.FetchByEntityAsync(entity, cancellationToken);
+            if (user != null)
+                return user;
 
-        public Task<User> FetchByEntityAsync(string entity, CancellationToken cancellationToken)
-        {
-            Ensure.Argument.IsNotNullOrWhiteSpace(entity, nameof(entity));
-            return this.FetchByFilterAsync(this.textHelpers.BuildCacheKey(new [] { "entity", entity }), u => u.Entity == entity, cancellationToken);
-        }
+            // If this is an internal entity, no need to look further.
+            if (this.uriHelpers.TryGetHandle(entity, out var handle))
+                return null;
 
-        public Task<User> FetchByEmailAsync(string email, CancellationToken cancellationToken)
-        {
-            Ensure.Argument.IsNotNullOrWhiteSpace(email, nameof(email));
-            return this.FetchByFilterAsync(this.textHelpers.BuildCacheKey(new [] { "email", email }), u => u.Email == email, cancellationToken);
-        }
+            // Retry logic to deal with race conditions on the user creation.
+            return await this.taskHelpers.RetryAsync(async () =>
+            {
+                // Try to retrieve the user externally.
+                user = await this.externalUserLoader.FetchByEntity(entity, cancellationToken);
+                if (user == null)
+                    return null;
 
-        private Task<User> FetchByFilterAsync(string cacheId, Expression<Func<CacheUser, bool>> filter, CancellationToken cancellationToken)
-        {
-            return this.resourceCacheService.WrapFetchAsync(cacheId, 
-                ct => this.userTable.FindLastVersionAsync(filter, ct),
-                (cacheUser, ct) => Task.FromResult(User.FromCache(this.resourceCacheService, cacheUser)),
-                cancellationToken);
+                // If the user we found has a different entity, retry to fetch internally again.
+                if (user.Entity != entity)
+                {
+                    var otherEntityUser = await this.internalUserLoader.FetchByEntityAsync(user.Entity, cancellationToken);
+                    if (otherEntityUser != null)
+                        return otherEntityUser;
+                }
+
+                // Otherwise, save it and return.
+                await user.SaveAsync(cancellationToken);
+                return user;
+            }, cancellationToken);
         }
     }
 }

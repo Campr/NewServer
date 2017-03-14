@@ -4,7 +4,7 @@ using Server.Lib.Models.Resources;
 
 namespace Server.Lib.ScopeServices
 {
-    public interface IPostLoader
+    public interface IInternalPostLoader
     {
         /// <summary>
         /// Fetch the last version of a single <see cref="Post"/>.

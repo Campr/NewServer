@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Server.Lib.Models.Resources.Api;
@@ -12,10 +13,14 @@ namespace Server.Lib.Models.Resources
         public abstract TCacheResource ToCache();
         public abstract Task SaveAsync(CancellationToken cancellationToken = default(CancellationToken));
 
-        public virtual string[][] CacheIds => new[]
+        protected virtual string[][] AllCacheIds => new[]
         {
             new [] { "id", this.Id }
         };
+
+        public string[][] CacheIds => this.AllCacheIds
+            .Where(c => !c.Any(string.IsNullOrWhiteSpace))
+            .ToArray();
         
         public string Id { get; set; }
         public DateTime CreatedAt { get; set; }

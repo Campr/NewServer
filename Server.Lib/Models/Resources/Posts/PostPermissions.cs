@@ -11,16 +11,16 @@ namespace Server.Lib.Models.Resources.Posts
     public class PostPermissions
     {
         public static async Task<PostPermissions> FromCacheAsync(
-            IUserLoader userLoader,
+            IInternalUserLoader internalUserLoader,
             CachePostPermissions cachePostPermissions,
             CancellationToken cancellationToken)
         {
-            Ensure.Argument.IsNotNull(userLoader, nameof(userLoader));
+            Ensure.Argument.IsNotNull(internalUserLoader, nameof(internalUserLoader));
             Ensure.Argument.IsNotNull(cachePostPermissions, nameof(cachePostPermissions));
 
             // Load dependencies.
-            var userTasks = cachePostPermissions.UserIds?.Select(u => userLoader.FetchAsync(u, cancellationToken)).ToList() ?? new List<Task<User>>();
-            var groupTasks = cachePostPermissions.Groups?.Select(g => PostReference.FromCacheAsync(userLoader, g, cancellationToken)).ToList() ?? new List<Task<PostReference>>();
+            var userTasks = cachePostPermissions.UserIds?.Select(u => internalUserLoader.FetchAsync(u, cancellationToken)).ToList() ?? new List<Task<User>>();
+            var groupTasks = cachePostPermissions.Groups?.Select(g => PostReference.FromCacheAsync(internalUserLoader, g, cancellationToken)).ToList() ?? new List<Task<PostReference>>();
 
             await Task.WhenAll(
                 Task.WhenAll(userTasks),
