@@ -42,7 +42,7 @@ namespace Server.Lib.ScopeServices
                 return user;
 
             // If this is an internal entity, no need to look further.
-            if (this.uriHelpers.TryGetHandle(entity, out var handle))
+            if (this.uriHelpers.TryGetHandleFromEntity(entity, out var handle))
                 return null;
 
             // Retry logic to deal with race conditions on the user creation.

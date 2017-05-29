@@ -13,7 +13,7 @@ namespace Server.Lib.Tests.Infrastructure
             // Local Redis configuration.
             this.RedisServers = new []
             {
-                new KeyValuePair<string, int>("redis", 6379)
+                new KeyValuePair<string, int>("localhost", 6379)
             };
             this.RedisPassword = null;
             this.CachePrefixes = new Dictionary<Type, string>
@@ -27,7 +27,7 @@ namespace Server.Lib.Tests.Infrastructure
             this.MongoDatabaseName = Guid.NewGuid().ToString("N");
             this.MongoServers = new []
             {
-                new KeyValuePair<string, int>("mongo", 27017)
+                new KeyValuePair<string, int>("localhost", 27017)
             };
             this.MongoCollections = new Dictionary<Type, string>
             {

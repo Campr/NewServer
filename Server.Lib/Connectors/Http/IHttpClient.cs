@@ -7,6 +7,5 @@ namespace Server.Lib.Connectors.Http
     {
         IHttpRequest Head(Uri target);
         IHttpRequest Get(Uri target);
-        IHttpRequest<T> Get<T>(Uri target) where T : ApiResource;
     }
 }

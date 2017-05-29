@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Server.Lib.Helpers;
 using Server.Lib.Infrastructure;
 using Server.Lib.Models.PostContent;

@@ -13,4 +13,9 @@ namespace Server.Lib.Connectors.Http
         Task<string> ReadContentAsStringAsync();
         Uri FindLinkInHeader(string linkRel);
     }
+
+    public interface IHttpResponse<T> : IHttpResponse
+    {
+        Task<T> ReadContentAsync();
+    }
 }

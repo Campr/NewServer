@@ -20,5 +20,8 @@ namespace Server.Lib.Models.Resources.Cache
         // Dates.
         public DateTime PublishedAt { get; set; }
         public DateTime OriginalPublishedAt { get; set; }
+
+        // Content.
+        public List<string> ContentUrls { get; set; }
     }
 }

@@ -4,6 +4,8 @@ namespace Server.Lib.Helpers
 {
     public interface IUriHelpers
     {
-        bool TryGetHandle(Uri internalEntity, out string handle);
+        bool TryGetHandleFromPath(string requestPath, out string handle);
+        bool TryGetHandleFromEntity(Uri internalEntity, out string handle);
+        Uri ApiUriFromUri(Uri uri);
     }
 }

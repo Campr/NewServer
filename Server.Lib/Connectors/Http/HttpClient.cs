@@ -1,7 +1,6 @@
 ﻿using System;
 using Server.Lib.Helpers;
 using Server.Lib.Infrastructure;
-using Server.Lib.Models.Resources.Api;
 using Native = System.Net.Http;
 
 namespace Server.Lib.Connectors.Http
@@ -28,17 +27,12 @@ namespace Server.Lib.Connectors.Http
 
         public IHttpRequest Head(Uri target)
         {
-            return new HttpRequest(this.httpHelpers, this.client, Native.HttpMethod.Head, target);
+            return new HttpRequest(this.jsonHelpers, this.httpHelpers, this.client, Native.HttpMethod.Head, target);
         }
 
         public IHttpRequest Get(Uri target)
         {
-            return new HttpRequest(this.httpHelpers, this.client, Native.HttpMethod.Get, target);
-        }
-
-        public IHttpRequest<T> Get<T>(Uri target) where T : ApiResource
-        {
-            return new HttpRequest<T>(this.jsonHelpers, this.httpHelpers, this.client, Native.HttpMethod.Get, target);
+            return new HttpRequest(this.jsonHelpers, this.httpHelpers, this.client, Native.HttpMethod.Get, target);
         }
     }
 }

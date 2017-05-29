@@ -42,4 +42,36 @@ namespace Server.Lib.Connectors.Http
             return links.FirstOrDefault();
         }
     }
+
+    class HttpResponse<T> : HttpResponse, IHttpResponse<T>
+    {
+        public HttpResponse(
+            IJsonHelpers jsonHelpers,
+            IHttpHelpers httpHelpers, 
+            Native.HttpResponseMessage response) 
+                : base(httpHelpers, response)
+        {
+            Ensure.Argument.IsNotNull(jsonHelpers, nameof(jsonHelpers));
+            this.jsonHelpers = jsonHelpers;
+        }
+
+        private readonly IJsonHelpers jsonHelpers;
+
+        public async Task<T> ReadContentAsync()
+        {
+            // If the request was successful, parse the result.
+            if (this.IsSuccessStatusCode)
+            {
+                var content = await this.ReadContentAsStringAsync();
+                return this.jsonHelpers.FromJsonString<T>(content);
+            }
+
+            // Otherwise, it may be a permanently unavailable resource.
+            if (!this.IsRetryableStatusCode)
+                return default(T);
+
+            // If it's a temporary failure, throw.
+            throw new HttpException(this.StatusCode, "Temporary HTTP failure.");
+        }
+    }
 }

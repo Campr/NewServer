@@ -68,7 +68,7 @@ namespace Server.Lib.ScopeServices
             // Fetch the corresponding post.
             return this.resourceCacheService.WrapFetchAsync(cacheId, 
                 ct => this.postTable.FindAsync(p => p.UserId == user.Id && p.Id == postId && p.VersionId == versionId, ct),
-                this.FromCacheAsync, 
+                this.FromCacheAsync,
                 cancellationToken);
         }
 

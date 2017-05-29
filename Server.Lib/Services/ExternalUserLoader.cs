@@ -17,26 +17,26 @@ namespace Server.Lib.Services
             IConstants constants,
             ITextHelpers textHelpers,
             IHttp http,
-            IProtocolClient protocolClient,
+            IProtocol protocol,
             IResourceCacheService resourceCacheService)
         {
             Ensure.Argument.IsNotNull(constants, nameof(constants));
             Ensure.Argument.IsNotNull(textHelpers, nameof(textHelpers));
             Ensure.Argument.IsNotNull(http, nameof(http));
-            Ensure.Argument.IsNotNull(protocolClient, nameof(protocolClient));
+            Ensure.Argument.IsNotNull(protocol, nameof(protocol));
             Ensure.Argument.IsNotNull(resourceCacheService, nameof(resourceCacheService));
 
             this.constants = constants;
             this.textHelpers = textHelpers;
             this.http = http;
-            this.protocolClient = protocolClient;
+            this.protocol = protocol;
             this.resourceCacheService = resourceCacheService;
         }
 
         private readonly IConstants constants;
         private readonly ITextHelpers textHelpers;
         private readonly IHttp http;
-        private readonly IProtocolClient protocolClient;
+        private readonly IProtocol protocol;
         private readonly IResourceCacheService resourceCacheService;
         
         public async Task<User> FetchByEntity(Uri entity, CancellationToken cancellationToken)
@@ -57,7 +57,8 @@ namespace Server.Lib.Services
                 : new Uri(entity, metaPostUri);
 
             // Use the protocol client to fetch the Meta post.
-            var metaApiPost = await this.protocolClient.FetchPostAtUriAsync<MetaPostContent>(absoluteMetaPostUri, cancellationToken);
+            var protocolClient = this.protocol.MakeClient();
+            var metaApiPost = await protocolClient.FetchPostAtUriAsync<MetaPostContent>(absoluteMetaPostUri, cancellationToken);
             if (metaApiPost == null)
                 return null;
 
